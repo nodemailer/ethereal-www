@@ -1,0 +1,28 @@
+name="Ethereal Email"
+
+title="ethereal-www"
+
+[service]
+    # email domain for new users
+    domain="ethereal.email"
+    # default quotas for new users
+    quota=1024
+    recipients=2000
+    forwards=2000
+
+[dbs]
+    # redis is only needed for Express.js sessions
+    redis="redis://127.0.0.1:6379/3"
+
+[www]
+    host="127.0.0.1"
+    port=5999
+    proxy=true
+    postsize="5MB"
+    log="dev"
+    secret="a cat"
+    baseurl="https://ethereal.email" # link used in emails etc
+
+[log]
+    level="silly"
+    mail=true
