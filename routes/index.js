@@ -158,21 +158,21 @@ router.get('/message/:id', (req, res, next) => {
 
         if (messageData.meta.origin) {
             envelope.push({
-                key: 'Remote address',
+                key: 'Address',
                 value: messageData.meta.origin
             });
         }
 
         if (messageData.meta.transhost) {
             envelope.push({
-                key: 'Hostname in greeting',
+                key: 'Greeting',
                 value: messageData.meta.transhost
             });
         }
 
         if (messageData.meta.originhost) {
             envelope.push({
-                key: 'Resolved hostname',
+                key: 'Hostname',
                 value: messageData.meta.originhost
             });
         }
