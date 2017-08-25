@@ -62,3 +62,7 @@ pre span:before {
     margin-right: .5em;
     color: #888;
 }
+
+.navbar {
+    margin-bottom: 2rem;
+}

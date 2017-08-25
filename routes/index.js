@@ -23,6 +23,7 @@ const etherealId = new EtherealId({
 /* GET home page. */
 router.get('/', (req, res) => {
     res.render('index', {
+        activeHome: true,
         page: mdrender('index', { title: 'test' })
     });
 });
