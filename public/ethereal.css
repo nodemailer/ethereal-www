@@ -16,12 +16,10 @@ h3 {
     margin-bottom: 0;
 }
 
-/*
 .iframe-container {
-    padding: 1rem;
+    /*    padding: 1rem;*/
     border: 1px solid rgba(86, 61, 124, .2);
 }
-*/
 
 .iframe-container iframe {
     margin: 0;
