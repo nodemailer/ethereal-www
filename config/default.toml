@@ -3,26 +3,59 @@ name="Ethereal Email"
 title="ethereal-www"
 
 [service]
-    # email domain for new users
-    domain="ethereal.email"
-    # default quotas for new users
-    quota=1024
-    recipients=2000
-    forwards=2000
+# email domain for new users
+domain="ethereal.email"
+# default quotas for new users
+quota=1024
+recipients=2000
+forwards=2000
+msgidSecret="super secret"
+msgidHash="md5"
 
 [dbs]
-    # redis is only needed for Express.js sessions
-    redis="redis://127.0.0.1:6379/3"
+# mongodb connection string for the main database
+mongo="mongodb://127.0.0.1:27017/wildduck"
+
+# redis connection string
+redis="redis://127.0.0.1:6379/3"
+
+# Wild Duck allows using different kind of data in different databases
+# If you do not provide a database config value, then main database connection
+# is used for everything
+# You can either use a database name (uses shared connection) or a configutaion
+# url (creates a separate connection) for each databases
+
+# Optional database name or connection url for GridFS if you do not want to
+# use the main db for storing attachments. Useful if you want
+# to use a different mount folder or storage engine
+#gridfs="wildduck"
+
+# Optional database name or connection url for users collection if you do not want to
+# use the main db for storing user/address data. Useful if you want
+# to use a different mount folder or storage engine
+#users="wildduck"
+
+# Optional database name or connection url for ZoneMTA queue database. This is
+# used to push outbound emails to the sending queue
+#sender="zone-mta"
+
+#queued="mail"
+
+[attachments]
+# For now there's only a single option for attachment storage
+type="gridstore"
+bucket="attachments"
 
 [www]
-    host="127.0.0.1"
-    port=5999
-    proxy=true
-    postsize="5MB"
-    log="dev"
-    secret="a cat"
-    baseurl="https://ethereal.email" # link used in emails etc
+host="127.0.0.1"
+port=5999
+proxy=true
+postsize="5MB"
+log="dev"
+secret="a cat"
+baseurl="https://ethereal.email" # link used in emails etc
 
 [log]
-    level="silly"
-    mail=true
+level="silly"
+mail=true
+authlogExpireDays=30

@@ -1,0 +1,20 @@
+<h2>{{subject}}</h2>
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link" href="/message/{{id}}?tab=header">Headers</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/message/{{id}}?tab=envelope">Envelope</a>
+    </li>
+    <li class="nav-item active">
+        <a class="nav-link active" href="/message/{{id}}/source">Source</a>
+    </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane show active">
+
+        <pre>{{{source}}}</pre>
+
+    </div>
+</div>

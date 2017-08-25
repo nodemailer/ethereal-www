@@ -8,6 +8,7 @@ let config = require('wild-config');
 let log = require('npmlog');
 let app = require('./app');
 let http = require('http');
+const db = require('./lib/db');
 
 let port = config.www.port;
 let host = config.www.host;
@@ -48,7 +49,6 @@ server.on('error', err => {
 server.on('listening', () => {
     let addr = server.address();
     let bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-    console.log(addr);
     log.info('Express', 'WWW server listening on %s', bind);
 
     if (config.group) {
@@ -72,4 +72,12 @@ server.on('listening', () => {
     }
 });
 
-server.listen(port, host);
+// Initialize database connection
+db.connect(err => {
+    if (err) {
+        log.error('Db', 'Failed to setup database connection');
+        return process.exit(1);
+    }
+
+    server.listen(port, host);
+});

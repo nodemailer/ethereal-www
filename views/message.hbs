@@ -1,0 +1,78 @@
+<h2>{{message.subject}}</h2>
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link{{#if activeHeader}} active{{/if}}" id="message-header-tab" data-toggle="tab" href="#message-header" role="tab" aria-controls="message-header" aria-expanded="true">Headers</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link{{#if activeEnvelope}} active{{/if}}" id="message-envelope-tab" data-toggle="tab" href="#message-envelope" role="tab" aria-controls="message-envelope">Envelope</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/message/{{id}}/source">Source</a>
+    </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
+
+        <table class="table table-sm">
+            {{#each info}}
+                <div>
+                    <strong>{{key}}:</strong>
+                    <span {{#if isDate}} class="datestring" title="{{value}}" {{/if}}>
+                        {{#if isHtml}}{{{value}}}{{else}}{{value}}{{/if}}
+                    </span>
+                </div>
+            {{/each}}
+        </table>
+
+    </div>
+    <div class="tab-pane{{#if activeEnvelope}} show active{{/if}}" id="message-envelope" role="tabpanel" aria-labelledby="message-envelope-tab">
+        {{#each envelope}}
+            <div>
+                <strong>{{key}}:</strong>
+                <span {{#if isDate}} class="datestring" title="{{value}}" {{/if}}>
+                    {{#if isHtml}}{{{value}}}{{else}}{{value}}{{/if}}
+                </span>
+            </div>
+        {{/each}}
+    </div>
+</div>
+
+{{#if message.attachments}}
+<p class="text-right">
+    {{#each message.attachments}}
+        <a class="btn btn-info btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-cloud-download" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
+    {{/each}}
+</p>
+{{/if}}
+
+
+<div class="row">
+    <div id="message" class="col-12 iframe-container"></div>
+</div>
+
+<script type="text/javascript" src="/purify-1.0.0/purify.min.js"></script>
+<script>
+    var message = {{{messageJson}}};
+
+    document.addEventListener("DOMContentLoaded", function(event) {
+        if (message.html) {
+            message.html.forEach(function(html) {
+                var clean = DOMPurify.sanitize(html, {
+                    ALLOW_UNKNOWN_PROTOCOLS: true,
+                    WHOLE_DOCUMENT: true
+                });
+
+                clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" />')
+
+                var iframe = document.createElement('iframe');
+
+                document.getElementById('message').appendChild(iframe);
+                iframe.contentWindow.document.open();
+                iframe.contentWindow.document.write(clean);
+                iframe.contentWindow.document.close();
+
+            });
+        }
+    }, false);
+</script>
