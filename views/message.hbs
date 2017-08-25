@@ -13,18 +13,14 @@
 </ul>
 <div class="tab-content" id="myTabContent">
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
-
-        <table class="table table-sm">
-            {{#each info}}
-                <div>
-                    <strong>{{key}}:</strong>
-                    <span {{#if isDate}} class="datestring" title="{{value}}" {{/if}}>
-                        {{#if isHtml}}{{{value}}}{{else}}{{value}}{{/if}}
-                    </span>
-                </div>
-            {{/each}}
-        </table>
-
+        {{#each info}}
+            <div>
+                <strong>{{key}}:</strong>
+                <span {{#if isDate}} class="datestring" title="{{value}}" {{/if}}>
+                    {{#if isHtml}}{{{value}}}{{else}}{{value}}{{/if}}
+                </span>
+            </div>
+        {{/each}}
     </div>
     <div class="tab-pane{{#if activeEnvelope}} show active{{/if}}" id="message-envelope" role="tabpanel" aria-labelledby="message-envelope-tab">
         {{#each envelope}}
