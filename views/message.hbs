@@ -50,22 +50,19 @@
 
     document.addEventListener("DOMContentLoaded", function(event) {
         if (message.html) {
-            message.html.forEach(function(html) {
-                var clean = DOMPurify.sanitize(html, {
-                    ALLOW_UNKNOWN_PROTOCOLS: true,
-                    WHOLE_DOCUMENT: true
-                });
-
-                clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" />')
-
-                var iframe = document.createElement('iframe');
-
-                document.getElementById('message').appendChild(iframe);
-                iframe.contentWindow.document.open();
-                iframe.contentWindow.document.write(clean);
-                iframe.contentWindow.document.close();
-
+            var clean = DOMPurify.sanitize(message.html.join('\n'), {
+                ALLOW_UNKNOWN_PROTOCOLS: true,
+                WHOLE_DOCUMENT: true
             });
+
+            clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" />')
+
+            var iframe = document.createElement('iframe');
+
+            document.getElementById('message').appendChild(iframe);
+            iframe.contentWindow.document.open();
+            iframe.contentWindow.document.write(clean);
+            iframe.contentWindow.document.close();
         }
     }, false);
 </script>
