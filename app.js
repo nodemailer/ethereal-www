@@ -12,8 +12,9 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 const flash = require('connect-flash');
 const compression = require('compression');
-
+const passport = require('./lib/passport');
 const routesIndex = require('./routes/index');
+const ObjectID = require('mongodb').ObjectID;
 
 const app = express();
 
@@ -87,12 +88,19 @@ app.use(
     })
 );
 
+passport.setup(app);
+
 app.use((req, res, next) => {
     // make sure flash messages are available
     res.locals.flash = req.flash.bind(req);
+
+    if (req.user) {
+        res.locals.user = req.user;
+        req.user.id = new ObjectID(req.user.id);
+    }
+
     res.locals.serviceName = config.name;
     res.locals.serviceDomain = config.service.domain;
-
     next();
 });
 

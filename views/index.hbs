@@ -1,8 +1,22 @@
 <div class="jumbotron">
     <h1 class="display-3">Ethereal</h1>
     <p class="lead">
-        <strong>Ethereal</strong> is an email testing platform for <a href="https://nodemailer.com/">Nodemailer</a>. You can generate a vanity email account right from Nodemailer, send an email using that account just like you would use any other email sending service and finally preview the sent message here as no emails are actually delivered, all messages are stored to the Ethereal account and no message never leaves the system.
+        <strong>Ethereal</strong> is an email testing platform for <a href="https://nodemailer.com/">Nodemailer</a>. It's an anti-transactional email, messages never get delivered.</p>
+        <p>You can generate a vanity email account right from Nodemailer, send an email using that account just as you would use any other email sending service and finally preview the sent message here as no emails are actually delivered, all messages are stored to the Ethereal account and no message never leaves the system.
     </p>
 </div>
 
-{{{page}}}
+<div class="row">
+<div class="col-md-4">
+  <h2>IMAP/POP3</h2>
+  <p>Ethereal email addresses act as real IMAP/POP3 accounts. You can access sent and received messages using your favorite email client, whatever that happens to be.</p>
+</div>
+<div class="col-md-4">
+  <h2>Inbound</h2>
+  <p>The same account acts as a real inbound email address. You can send emails to that address from anywhere and these messages also end up on the account mailbox.</p>
+</div>
+<div class="col-md-4">
+  <h2>Automatic</h2>
+  <p>All account registration is handled from the Nodemailer API. If you have lost authentication details for the previous account, then just create a new one.</p>
+</div>
+</div>

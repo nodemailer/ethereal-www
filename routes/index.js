@@ -4,6 +4,7 @@ const config = require('wild-config');
 const express = require('express');
 const EtherealId = require('ethereal-id');
 const router = new express.Router();
+const passport = require('../lib/passport');
 const mdrender = require('../lib/mdrender.js');
 const db = require('../lib/db');
 const libqp = require('libqp');
@@ -20,12 +21,29 @@ const etherealId = new EtherealId({
     hash: config.service.msgidHash
 });
 
+router.use(passport.csrf);
+
 /* GET home page. */
 router.get('/', (req, res) => {
     res.render('index', {
         activeHome: true,
         page: mdrender('index', { title: 'test' })
     });
+});
+
+router.get('/login', (req, res) => {
+    res.render('login', {
+        activeLogin: true,
+        csrfToken: req.csrfToken()
+    });
+});
+
+router.post('/login', passport.parse, (req, res, next) => passport.login(req, res, next));
+
+router.get('/logout', (req, res) => {
+    req.session.require2fa = false;
+    req.flash(); // clear pending messages
+    passport.logout(req, res);
 });
 
 router.get('/message/:id/source', (req, res, next) => {
