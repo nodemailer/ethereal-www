@@ -24,7 +24,6 @@
 
 <div class="iframe-container">
 
-
     <div class="container">
         <nav class="navbar navbar-expand-lg navbar-dark bg-info">
             <a class="navbar-brand" href="/"><span class="oi oi-envelope-closed" title="Ethereal" aria-hidden="true"></span> Ethereal</a>
@@ -36,9 +35,14 @@
                     <li class="nav-item{{#if activeHome}} active{{/if}}">
                         <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
                     </li>
-                    <span class="navbar-text">
-                        {{user.address}}
-                     </span>
+                    <li class="nav-item{{#if activeFaq}} active{{/if}}">
+                        <a class="nav-link" href="/faq">FAQ</a>
+                    </li>
+                    {{#if user}}
+                        <span class="navbar-text">
+                            {{user.address}}
+                        </span>
+                    {{/if}}
                 </ul>
 <!--
                 <ul class="navbar-nav">

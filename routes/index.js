@@ -31,6 +31,14 @@ router.get('/', (req, res) => {
     });
 });
 
+router.get('/faq', (req, res) => {
+    res.render('docs', {
+        activeFaq: true,
+        title: 'FAQ',
+        page: mdrender('faq')
+    });
+});
+
 router.get('/login', (req, res) => {
     res.render('login', {
         activeLogin: true,
