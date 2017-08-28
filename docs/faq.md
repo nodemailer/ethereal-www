@@ -1,5 +1,3 @@
-# FAQ
-
 ## 1\. Why would someone want to use Ethereal?
 
 Ethereal is mostly useful for app development. Instead of configuring a real email account for sending mail your application can request an Ethereal test account and use it for message delivery. You get the same experience as using any other mail service, you can configure it as an outbound mail server and send your transactional or marketing emails through the Ethereal service. Unlike real email services Ethereal only accepts mail for delivery but never actually delivers anything. Instead you get an URL (or use your favorite IMAP app) to conveniently preview the sent messages.
