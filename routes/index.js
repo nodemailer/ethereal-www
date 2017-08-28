@@ -139,6 +139,57 @@ router.get('/message/:id/source', (req, res, next) => {
     });
 });
 
+router.get('/message/:id/message.eml', (req, res, next) => {
+    let data = etherealId.validate(req.params.id);
+    if (!data) {
+        let err = new Error('Invalid or unknown message identifier');
+        err.status = 404;
+        return next(err);
+    }
+
+    let mailbox = new ObjectID(data.mailboxId);
+    let message = new ObjectID(data.messageId);
+    let uid = data.uid;
+
+    db.database.collection('messages').findOne({
+        _id: message,
+        mailbox,
+        uid
+    }, {
+        fields: {
+            _id: true,
+            user: true,
+            mimeTree: true
+        }
+    }, (err, messageData) => {
+        if (err) {
+            return next(err);
+        }
+
+        if (!messageData) {
+            let err = new Error('This message does not exist');
+            err.status = 404;
+            return next(err);
+        }
+
+        let raw = db.messageHandler.indexer.rebuild(messageData.mimeTree);
+        if (!raw || raw.type !== 'stream' || !raw.value) {
+            let err = new Error('This message does not exist');
+            err.status = 404;
+            return next(err);
+        }
+
+        res.setHeader('Content-Type', 'message/rfc822');
+        raw.value.pipe(res);
+
+        raw.value.once('error', err => {
+            err.message = 'Database error. ' + err.message;
+            err.status = 500;
+            return next(err);
+        });
+    });
+});
+
 router.get('/message/:id', (req, res, next) => {
     let data = etherealId.validate(req.params.id);
     if (!data) {
@@ -158,6 +209,13 @@ router.get('/message/:id', (req, res, next) => {
 
         let info = [];
         let envelope = [];
+
+        if (messageData.subject) {
+            info.push({
+                key: 'Subject',
+                value: messageData.subject
+            });
+        }
 
         if (messageData.smtpFrom) {
             envelope.push({
@@ -284,6 +342,7 @@ router.get('/message/:id', (req, res, next) => {
             activeHeader: req.query.tab === 'header' || !req.query.tab,
             activeEnvelope: req.query.tab === 'envelope',
             envelope,
+            hasIframe: true,
             message: messageData,
             messageJson: JSON.stringify(messageData).replace(/\//g, '\\u002f')
         });

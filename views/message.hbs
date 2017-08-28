@@ -1,5 +1,3 @@
-<h2>{{message.subject}}</h2>
-
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item">
         <a class="nav-link{{#if activeHeader}} active{{/if}}" id="message-header-tab" data-toggle="tab" href="#message-header" role="tab" aria-controls="message-header" aria-expanded="true">Headers</a>
@@ -12,6 +10,14 @@
     </li>
 </ul>
 <div class="tab-content" id="myTabContent">
+    {{#if message.attachments}}
+    <div class="float-right">
+        {{#each message.attachments}}
+            <a class="btn btn-info btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-cloud-download" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
+        {{/each}}
+    </div>
+    {{/if}}
+
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
         {{#each info}}
             <div>
@@ -34,15 +40,11 @@
     </div>
 </div>
 
-{{#if message.attachments}}
-<p class="text-right">
-    {{#each message.attachments}}
-        <a class="btn btn-info btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-cloud-download" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
-    {{/each}}
-</p>
-{{/if}}
+</div> <!-- upper .container -->
 
-<div id="message" class="iframe-container"></div>
+<div class="container includes-iframe"> <!-- lower .container -->
+
+<div id="message" class="iframe-box"></div>
 
 <script type="text/javascript" src="/purify-1.0.0/purify.min.js"></script>
 <script>
@@ -52,10 +54,11 @@
         if (message.html) {
             var clean = DOMPurify.sanitize(message.html.join('\n'), {
                 ALLOW_UNKNOWN_PROTOCOLS: true,
-                WHOLE_DOCUMENT: true
+                WHOLE_DOCUMENT: true,
+                FORBID_TAGS: ['form']
             });
 
-            clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" />')
+            clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" /><base target="_parent">');
 
             var iframe = document.createElement('iframe');
 
