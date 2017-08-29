@@ -13,7 +13,7 @@
     {{#if message.attachments}}
     <div class="float-right attachment-list">
         {{#each message.attachments}}
-            <a class="btn btn-secondary btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-cloud-download" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
+            <a class="btn btn-secondary btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-paperclip" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
         {{/each}}
     </div>
     {{/if}}

@@ -1,5 +1,6 @@
 'use strict';
 
+const MongoPaging = require('mongo-cursor-pagination');
 const config = require('wild-config');
 const express = require('express');
 const EtherealId = require('ethereal-id');
@@ -8,6 +9,7 @@ const passport = require('../lib/passport');
 const mdrender = require('../lib/mdrender.js');
 const db = require('../lib/db');
 const libqp = require('libqp');
+const Joi = require('joi');
 const he = require('he');
 const libbase64 = require('libbase64');
 const libmime = require('libmime');
@@ -426,6 +428,191 @@ router.get('/attachment/:id/:aid', (req, res, next) => {
     });
 });
 
+router.get('/messages', checkLogin, (req, res, next) => {
+    const schema = Joi.object().keys({
+        limit: Joi.number().empty('').default(20).min(1).max(250),
+        order: Joi.any().empty('').allow(['asc', 'desc']).default('desc'),
+        next: Joi.string().empty('').alphanum().max(100),
+        previous: Joi.string().empty('').alphanum().max(100),
+        page: Joi.number().empty('').default(1)
+    });
+
+    const result = Joi.validate(req.query, schema, {
+        abortEarly: false,
+        convert: true,
+        allowUnknown: true
+    });
+
+    if (result.error) {
+        let err = new Error(result.error.message);
+        err.status = 500;
+        return next(err);
+    }
+
+    let user = req.user.id;
+    let limit = result.value.limit;
+    let page = result.value.page;
+    let pageNext = result.value.next;
+    let pagePrevious = result.value.previous;
+    let sortAscending = result.value.order === 'asc';
+
+    db.database.collection('mailboxes').findOne({
+        user,
+        path: 'INBOX'
+    }, {
+        fields: {
+            _id: true,
+            path: true,
+            specialUse: true,
+            uidNext: true
+        }
+    }, (err, mailboxData) => {
+        if (err) {
+            err.message = 'MongoDB Error: ' + err.message;
+            err.status = 500;
+            return next(err);
+        }
+        if (!mailboxData) {
+            let err = new Error('This mailbox does not exist');
+            err.status = 404;
+            return next(err);
+        }
+
+        let filter = {
+            mailbox: mailboxData._id,
+            // uid is part of the sharding key so we need it somehow represented in the query
+            uid: {
+                $gt: 0,
+                $lt: mailboxData.uidNext
+            }
+        };
+
+        getFilteredMessageCount(db, filter, (err, total) => {
+            if (err) {
+                err.status = 500;
+                return next(err);
+            }
+
+            let opts = {
+                limit,
+                query: filter,
+                fields: {
+                    _id: true,
+                    uid: true,
+                    'meta.from': true,
+                    hdate: true,
+                    flags: true,
+                    subject: true,
+                    'mimeTree.parsedHeader.from': true,
+                    'mimeTree.parsedHeader.to': true,
+                    'mimeTree.parsedHeader.cc': true,
+                    'mimeTree.parsedHeader.sender': true,
+                    'mimeTree.parsedHeader.content-type': true,
+                    ha: true,
+                    intro: true,
+                    unseen: true,
+                    undeleted: true,
+                    flagged: true,
+                    draft: true,
+                    thread: true
+                },
+                paginatedField: 'uid',
+                sortAscending
+            };
+
+            if (pageNext) {
+                opts.next = pageNext;
+            } else if (pagePrevious) {
+                opts.previous = pagePrevious;
+            }
+
+            MongoPaging.find(db.database.collection('messages'), opts, (err, result) => {
+                if (err) {
+                    let err = new Error(result.error.message);
+                    err.status = 500;
+                    return next(err);
+                }
+
+                if (!result.hasPrevious) {
+                    page = 1;
+                }
+
+                let prevUrl = result.hasPrevious
+                    ? renderRoute('messages', { previous: result.previous, limit, order: sortAscending ? 'asc' : 'desc', page: Math.max(page - 1, 1) })
+                    : false;
+                let nextUrl = result.hasNext
+                    ? renderRoute('messages', { next: result.next, limit, order: sortAscending ? 'asc' : 'desc', page: page + 1 })
+                    : false;
+
+                let response = {
+                    activeMessages: true,
+                    total,
+                    page,
+                    nextPage: page + 1,
+                    previousPage: Math.max(page - 1, 1),
+                    previous: prevUrl,
+                    previousCursor: result.hasPrevious ? result.previous : false,
+                    next: nextUrl,
+                    nextCursor: result.hasNext ? result.next : false,
+                    specialUse: mailboxData.specialUse,
+                    results: (result.results || []).map(messageData => {
+                        let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
+                        let from = parsedHeader.from ||
+                        parsedHeader.sender || [
+                                {
+                                    name: '',
+                                    address: (messageData.meta && messageData.meta.from) || ''
+                                }
+                            ];
+                        tools.decodeAddresses(from);
+
+                        let to = parsedHeader.to || parsedHeader.cc || [].concat(messageData.meta.to || []).map(to => ({ name: '', address: to }));
+                        tools.decodeAddresses(to);
+
+                        let response = {
+                            id: messageData.uid,
+                            publicId: etherealId.get(mailboxData._id.toString(), messageData._id.toString(), messageData.uid),
+                            mailbox: mailboxData._id,
+                            thread: messageData.thread,
+                            from,
+                            to,
+                            subject: messageData.subject,
+                            date: messageData.hdate.toISOString(),
+                            intro: messageData.intro,
+                            attachments: !!messageData.ha,
+                            seen: !messageData.unseen,
+                            deleted: !messageData.undeleted,
+                            flagged: messageData.flagged,
+                            draft: messageData.draft,
+                            fromHtml: messageTools.getAddressesHTML(from),
+                            toHtml: messageTools.getAddressesHTML(to),
+                            flags: messageData.flags,
+                            outbound: messageData.flags.includes('$msa$delivery')
+                        };
+                        let parsedContentType = parsedHeader['content-type'];
+                        if (parsedContentType) {
+                            response.contentType = {
+                                value: parsedContentType.value
+                            };
+                            if (parsedContentType.hasParams) {
+                                response.contentType.params = parsedContentType.params;
+                            }
+
+                            if (parsedContentType.subtype === 'encrypted') {
+                                response.encrypted = true;
+                            }
+                        }
+
+                        return response;
+                    })
+                };
+
+                res.render('messages', response);
+            });
+        });
+    });
+});
+
 module.exports = router;
 
 function getMessage(id, mailbox, message, uid, callback) {
@@ -603,4 +790,31 @@ function getMessage(id, mailbox, message, uid, callback) {
             return callback(null, response);
         });
     });
+}
+
+function getFilteredMessageCount(db, filter, done) {
+    if (Object.keys(filter).length === 1 && filter.mailbox) {
+        // try to use cached value to get the count
+        return tools.getMailboxCounter(db, filter.mailbox, false, done);
+    }
+
+    db.database.collection('messages').count(filter, (err, total) => {
+        if (err) {
+            return done(err);
+        }
+        done(null, total);
+    });
+}
+
+function renderRoute(route, opts) {
+    let query = Object.keys(opts || {}).filter(key => opts[key]).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(opts[key])).join('&');
+    return route + (query.length ? '?' + query : '');
+}
+
+function checkLogin(req, res, next) {
+    if (!req.user) {
+        req.flash('Authentication required');
+        return res.redirect('/login');
+    }
+    next();
 }

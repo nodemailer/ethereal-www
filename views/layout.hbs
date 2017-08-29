@@ -39,12 +39,12 @@
                         <a class="nav-link" href="/faq">FAQ</a>
                     </li>
                     {{#if user}}
-                        <span class="navbar-text">
-                            {{user.address}}
-                        </span>
+                        <li class="nav-item{{#if activeMessages}} active{{/if}}">
+                            <a class="nav-link" href="/messages">Messages</a>
+                        </li>
                     {{/if}}
                 </ul>
-<!--
+
                 <ul class="navbar-nav">
                     {{#unless user}}
                         <li class="nav-item{{#if activeLogin}} active{{/if}}">
@@ -57,7 +57,7 @@
                         </li>
                     {{/if}}
                 </ul>
--->
+
             </div>
         </nav>
 

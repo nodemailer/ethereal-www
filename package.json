@@ -34,6 +34,7 @@
         "libmime": "^3.1.0",
         "libqp": "^1.1.0",
         "marked": "^0.3.6",
+        "mongo-cursor-pagination": "^5.0.0",
         "mongodb": "^2.2.31",
         "morgan": "^1.8.2",
         "npmlog": "^4.1.2",
