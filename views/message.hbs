@@ -11,7 +11,7 @@
 </ul>
 <div class="tab-content" id="myTabContent">
     {{#if message.attachments}}
-    <div class="float-right">
+    <div class="float-right attachment-list">
         {{#each message.attachments}}
             <a class="btn btn-link btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-cloud-download" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
         {{/each}}
