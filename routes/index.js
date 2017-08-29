@@ -45,7 +45,7 @@ router.get('/faq', (req, res) => {
     });
 });
 
-router.get('/faq', (req, res) => {
+router.get('/help', (req, res) => {
     res.render('help', {
         activeHelp: true
     });
