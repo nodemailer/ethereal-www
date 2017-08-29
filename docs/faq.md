@@ -4,7 +4,7 @@ Ethereal is mostly useful for app development. Instead of configuring a real ema
 
 #### 2\. How can I use it
 
-Ethereal accounts can be created by Nodemailer using the `nodemailer.createTestAccount(callback)` method. This method requests a new account (or uses a cached account) from Ethereal and returns related information. All Ethereal accounts look exactly as any other SMTP service account. For applications trying to send mail there's no difference whatsoever.
+Ethereal accounts can be created by Nodemailer using the `nodemailer.createTestAccount(callback)` method (or if you want to create accounts the old way, then from the [login page](/login)). This method requests a new account (or uses a cached account) from Ethereal and returns related information. All Ethereal accounts look exactly as any other SMTP service account. For applications trying to send mail there's no difference whatsoever.
 
 #### 3\. Where is the message URL
 
@@ -14,11 +14,11 @@ Message URLs are public and do not require authentication. Or to be more correct
 
 #### 4\. Should I generate a new account for every message
 
-You sure don't have to even though you can if you wanted to. Account details are cached in memory so if you make two account requests from the same process you only create one new account. If you do not want to list sent messages then you don't have to worry about accounts, if you do though, then you should store the account details somewhere and reuse these.
+You sure don't have to even though you can. Account details are cached in memory so if you make two account requests from the same process you only create one new account. If you do not want to list sent messages then you don't have to worry about accounts, if you do though, then you should store the account details somewhere and reuse these. Normally you would generate a single account and use it for all your testing.
 
 #### 5\. How long are the messages stored
 
-Messages are stored for 7 days.
+Messages are stored for 7 days, after what these are deleted.
 
 #### 6\. Are there any rate limits?
 
@@ -34,4 +34,4 @@ Ethereal Email service is funded by the ads displayed on [Nodemailer.com](https:
 
 #### 9\. Must I use Nodemailer for Ethereal?
 
-No, you can use any mail client or library that supports SMTP
+No, you can use any mail client or library that supports SMTP, be it PHPMailer or even Outlook Express.
