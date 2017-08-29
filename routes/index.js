@@ -64,6 +64,7 @@ router.get('/message/:id/source', (req, res, next) => {
         return next(err);
     }
 
+    data.warnPublic = true;
     renderSource(req, res, next, data);
 });
 
@@ -262,6 +263,7 @@ router.get('/message/:id', (req, res, next) => {
         return next(err);
     }
 
+    data.warnPublic = true;
     renderMessage(req, res, next, data);
 });
 
@@ -765,6 +767,8 @@ function renderMessage(req, res, next, data) {
             return next(err);
         }
 
+        let warnPublic = data.warnPublic && req.user && req.user.id.toString === messageData.user.toString();
+
         let info = [];
         let envelope = [];
 
@@ -897,6 +901,7 @@ function renderMessage(req, res, next, data) {
         res.render('message', {
             id: req.params.id,
             info,
+            warnPublic,
             messageUrl: messageData.messageUrl,
             attachmentUrl: messageData.attachmentUrl,
             activeHeader: req.query.tab === 'header' || !req.query.tab,
@@ -967,6 +972,8 @@ function renderSource(req, res, next, data) {
             return next(err);
         }
 
+        let warnPublic = data.warnPublic && req.user && req.user.id.toString === messageData.user.toString();
+
         let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
         let messageUrl = data.usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
 
@@ -1023,6 +1030,7 @@ function renderSource(req, res, next, data) {
 
             res.render('source', {
                 messageUrl,
+                warnPublic,
                 subject,
                 source
             });
