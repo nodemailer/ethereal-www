@@ -26,7 +26,7 @@ Currently not. The server is not the fastest one so you probably can't send too 
 
 #### 7\. I signed in to the account using IMAP. Where are all the messages?
 
-All sent messages can be found from the _Sent Mail_ folder (unless 7 days has passed and the message is already deleted). INBOX includes messages that are sent to the testing account address from other email addresses as Ethereal can handle incoming email as well. Inbound messages also expire after 7 days.
+All messages, both sent and received can be found from the _INBOX_ folder (unless 7 days has passed and the message is already deleted).
 
 #### 8\. How is this sustainable
 
