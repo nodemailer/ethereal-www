@@ -767,7 +767,7 @@ function renderMessage(req, res, next, data) {
             return next(err);
         }
 
-        let warnPublic = data.warnPublic && req.user && req.user.id.toString === messageData.user.toString();
+        let warnPublic = data.warnPublic && req.user && req.user.id.toString() === messageData.user.toString();
 
         let info = [];
         let envelope = [];
@@ -972,7 +972,7 @@ function renderSource(req, res, next, data) {
             return next(err);
         }
 
-        let warnPublic = data.warnPublic && req.user && req.user.id.toString === messageData.user.toString();
+        let warnPublic = data.warnPublic && req.user && req.user.id.toString() === messageData.user.toString();
 
         let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
         let messageUrl = data.usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
