@@ -692,7 +692,7 @@ function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
                 return done();
             }
             // we need to mark this message as seen
-            return db.messageHandler.update(messageData.user, mailbox, message, { seen: true }, err => {
+            return db.messageHandler.update(messageData.user, mailbox, messageData.uid, { seen: true }, err => {
                 if (err) {
                     // ignore
                 } else {
