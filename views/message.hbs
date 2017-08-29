@@ -6,16 +6,16 @@
         <a class="nav-link{{#if activeEnvelope}} active{{/if}}" id="message-envelope-tab" data-toggle="tab" href="#message-envelope" role="tab" aria-controls="message-envelope">Envelope</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="/message/{{id}}/source">Source</a>
+        <a class="nav-link" href="/message/{{message.publicId}}/source">Source</a>
     </li>
 </ul>
 <div class="tab-content" id="myTabContent">
     {{#if message.attachments}}
-    <div class="float-right attachment-list">
-        {{#each message.attachments}}
-            <a class="btn btn-secondary btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-paperclip" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
-        {{/each}}
-    </div>
+        <div class="float-right attachment-list">
+            {{#each message.attachments}}
+                <a class="btn btn-secondary btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-paperclip" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
+            {{/each}}
+        </div>
     {{/if}}
 
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
@@ -40,32 +40,34 @@
     </div>
 </div>
 
-</div> <!-- upper .container -->
+</div>
+<!-- upper .container -->
 
-<div class="container includes-iframe"> <!-- lower .container -->
+<div class="container includes-iframe">
+    <!-- lower .container -->
 
-<div id="message" class="iframe-box"></div>
+    <div id="message" class="iframe-box"></div>
 
-<script type="text/javascript" src="/purify-1.0.0/purify.min.js"></script>
-<script>
-    var message = {{{messageJson}}};
+    <script type="text/javascript" src="/purify-1.0.0/purify.min.js"></script>
+    <script>
+        var message = {{{messageJson}}};
 
-    document.addEventListener("DOMContentLoaded", function(event) {
-        if (message.html) {
-            var clean = DOMPurify.sanitize(message.html.join('\n'), {
-                ALLOW_UNKNOWN_PROTOCOLS: true,
-                WHOLE_DOCUMENT: true,
-                FORBID_TAGS: ['form']
-            });
+        document.addEventListener("DOMContentLoaded", function(event) {
+            if (message.html) {
+                var clean = DOMPurify.sanitize(message.html.join('\n'), {
+                    ALLOW_UNKNOWN_PROTOCOLS: true,
+                    WHOLE_DOCUMENT: true,
+                    FORBID_TAGS: ['form']
+                });
 
-            clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" /><base target="_parent">');
+                clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" /><base target="_parent">');
 
-            var iframe = document.createElement('iframe');
+                var iframe = document.createElement('iframe');
 
-            document.getElementById('message').appendChild(iframe);
-            iframe.contentWindow.document.open();
-            iframe.contentWindow.document.write(clean);
-            iframe.contentWindow.document.close();
-        }
-    }, false);
-</script>
+                document.getElementById('message').appendChild(iframe);
+                iframe.contentWindow.document.open();
+                iframe.contentWindow.document.write(clean);
+                iframe.contentWindow.document.close();
+            }
+        }, false);
+    </script>

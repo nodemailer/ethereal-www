@@ -76,6 +76,8 @@ router.get('/message/:id/source', (req, res, next) => {
         fields: {
             _id: true,
             user: true,
+            mailbox: true,
+            uid: true,
             mimeTree: true
         }
     }, (err, messageData) => {
@@ -89,6 +91,7 @@ router.get('/message/:id/source', (req, res, next) => {
             return next(err);
         }
 
+        let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
         let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
 
         let subject = parsedHeader.subject;
@@ -142,6 +145,7 @@ router.get('/message/:id/source', (req, res, next) => {
 
             res.render('source', {
                 id: req.params.id,
+                publicId,
                 subject,
                 source
             });
@@ -616,14 +620,19 @@ router.get('/messages', checkLogin, (req, res, next) => {
 module.exports = router;
 
 function getMessage(id, mailbox, message, uid, callback) {
-    db.database.collection('messages').findOne({
-        _id: message,
-        mailbox,
-        uid
-    }, {
+    let query = {};
+    if (message) {
+        query._id = message;
+    }
+    query.mailbox = mailbox;
+    query.uid = uid;
+
+    db.database.collection('messages').findOne(query, {
         fields: {
             _id: true,
+            uid: true,
             user: true,
+            mailbox: true,
             thread: true,
             meta: true,
             hdate: true,
@@ -651,6 +660,8 @@ function getMessage(id, mailbox, message, uid, callback) {
             err.status = 404;
             return callback(err);
         }
+
+        let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
 
         let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
 
@@ -725,7 +736,7 @@ function getMessage(id, mailbox, message, uid, callback) {
         }
 
         messageData.html = (messageData.html || [])
-            .map(html => html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => '/attachment/' + id + '/' + aid));
+            .map(html => html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => '/attachment/' + publicId + '/' + aid));
 
         let ensureSeen = done => {
             if (!messageData.unseen) {
@@ -747,6 +758,9 @@ function getMessage(id, mailbox, message, uid, callback) {
             let response = {
                 success: true,
                 id: message,
+                uid: messageData.uid,
+                mailbox: messageData.mailbox,
+                user: messageData.user,
                 from,
                 sender,
                 smtpFrom,
@@ -755,6 +769,7 @@ function getMessage(id, mailbox, message, uid, callback) {
                 replyTo,
                 to,
                 cc,
+                publicId,
                 subject,
                 messageId: messageData.msgid,
                 date: messageData.hdate.toISOString(),
@@ -767,10 +782,9 @@ function getMessage(id, mailbox, message, uid, callback) {
                 draft: messageData.draft,
                 html: messageData.html,
                 attachments: (messageData.attachments || []).map(attachment => {
-                    attachment.url = '/attachment/' + id + '/' + attachment.id;
+                    attachment.url = '/attachment/' + publicId + '/' + attachment.id;
                     return attachment;
-                }),
-                raw: '/message/' + id + '/message.eml'
+                })
             };
 
             let parsedContentType = parsedHeader['content-type'];

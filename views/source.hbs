@@ -1,19 +1,19 @@
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item">
-        <a class="nav-link" href="/message/{{id}}?tab=header">Headers</a>
+        <a class="nav-link" href="/message/{{publicId}}?tab=header">Headers</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="/message/{{id}}?tab=envelope">Envelope</a>
+        <a class="nav-link" href="/message/{{publicId}}?tab=envelope">Envelope</a>
     </li>
     <li class="nav-item active">
-        <a class="nav-link active" href="/message/{{id}}/source">Source</a>
+        <a class="nav-link active" href="/message/{{publicId}}/source">Source</a>
     </li>
 </ul>
 <div class="tab-content" id="myTabContent">
     <div class="tab-pane show active">
 
         <div class="text-right">
-            <a class="btn btn-link btn-sm" href="/message/{{id}}/message.eml" role="button" download="message.eml"><span class="oi oi-cloud-download" title="Download source" aria-hidden="true"></span> Download full source</a>
+            <a class="btn btn-link btn-sm" href="/message/{{publicId}}/message.eml" role="button" download="message.eml"><span class="oi oi-cloud-download" title="Download source" aria-hidden="true"></span> Download full source</a>
         </div>
 
         <pre>{{{source}}}</pre>
