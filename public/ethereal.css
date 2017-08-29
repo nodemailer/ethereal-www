@@ -96,6 +96,7 @@ pre span:before {
 .attachment-list {
     max-width: 50%;
     display: flex;
+    flex-wrap: wrap;
 }
 
 .attachment-list a {
