@@ -908,6 +908,7 @@ function renderMessage(req, res, next, data) {
             activeEnvelope: req.query.tab === 'envelope',
             envelope,
             hasIframe: true,
+            activeMessages: data.usePrivateUrl,
             message: messageData,
             messageJson: JSON.stringify(messageData).replace(/\//g, '\\u002f')
         });
@@ -1032,7 +1033,8 @@ function renderSource(req, res, next, data) {
                 messageUrl,
                 warnPublic,
                 subject,
-                source
+                source,
+                activeMessages: data.usePrivateUrl
             });
         });
     });
