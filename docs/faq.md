@@ -8,9 +8,9 @@ Ethereal accounts can be created by Nodemailer using the `nodemailer.createTestA
 
 #### 3\. Where is the message URL
 
-Once you have sent your message using an Ethereal account, you can get message preview URL with the `nodemailer.getTestMessageUrl(info)` method (the `info` object is the response from `sendMail`). Open that URL in your web browser to see the sent message.
+Once you have sent your message using an Ethereal account, you can get message preview URL with the `nodemailer.getTestMessageUrl(info)` method (the `info` object is the response from `sendMail`). Open that URL in your web browser to see the sent message. Message URLs are public and do not require authentication. Or to be more correct, the authentication info is encoded into the URL.
 
-Message URLs are public and do not require authentication. Or to be more correct, the authentication info is encoded into the URL.
+Alternatively you can log in either [here](/login) and see the messages page or use your favorite IMAP/POP3 client to access the sent messages.
 
 #### 4\. Should I generate a new account for every message
 
