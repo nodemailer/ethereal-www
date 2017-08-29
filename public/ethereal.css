@@ -97,3 +97,8 @@ pre span:before {
     max-width: 50%;
     display: flex;
 }
+
+.attachment-list a {
+    display: block;
+    margin: 0 3px 3px 0;
+}
