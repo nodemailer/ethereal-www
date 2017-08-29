@@ -1,10 +1,10 @@
 <div class="row">
-    <div class="col-6">
+    <div class="col-sm-6">
         <span class="navbar-text">
             Messages for <strong><a href="mailto:{{user.address}}">{{user.address}}</a></strong>
         </span>
     </div>
-    <div class="col-6">
+    <div class="col-sm-6">
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-end">
 
@@ -39,10 +39,9 @@
     </div>
 </div>
 
-
 <div class="row">
     <div class="col-12">
-        <table class="table table-striped table-bordered table-hover table-sm">
+        <table class="table table-responsive table-striped table-bordered table-hover table-sm">
             <tbody>
                 {{#each results}}
                     <tr style="{{#unless seen}}font-weight: bold;{{/unless}}">
