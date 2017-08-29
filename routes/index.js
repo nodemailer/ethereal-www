@@ -1,5 +1,6 @@
 'use strict';
 
+const generatePassword = require('generate-password');
 const MongoPaging = require('mongo-cursor-pagination');
 const config = require('wild-config');
 const express = require('express');
@@ -17,6 +18,9 @@ const tools = require('wildduck/lib/tools');
 const messageTools = require('../lib/message-tools');
 const addressparser = require('addressparser');
 const humanize = require('humanize');
+const base32 = require('hi-base32');
+const crypto = require('crypto');
+const util = require('util');
 const ObjectID = require('mongodb').ObjectID;
 const etherealId = new EtherealId({
     secret: config.service.msgidSecret,
@@ -38,6 +42,12 @@ router.get('/faq', (req, res) => {
         activeFaq: true,
         title: 'FAQ',
         page: mdrender('faq')
+    });
+});
+
+router.get('/faq', (req, res) => {
+    res.render('help', {
+        activeHelp: true
     });
 });
 
@@ -564,6 +574,58 @@ router.get('/messages', checkLogin, (req, res, next) => {
     });
 });
 
+router.post('/create', (req, res, next) => {
+    let username = getId();
+    let user = {
+        username,
+        password: generatePassword.generate({
+            length: 16,
+            numbers: true,
+            symbols: true,
+            excludeSimilarCharacters: true
+        }),
+        address: username + '@' + config.service.domain,
+        recipients: 500,
+        forwards: 500,
+        quota: 100 * 1024 * 1024,
+        retention: 604800000,
+        ip: req.ip
+    };
+
+    db.userHandler.create(user, (err, id) => {
+        if (err) {
+            err.status = 500;
+            return next(err);
+        }
+
+        let json =
+            'const transport = nodemailer.createTransport(' +
+            util.inspect(
+                {
+                    host: 'smtp.ethereal.email',
+                    port: 587,
+                    secure: false,
+                    auth: {
+                        user: user.address,
+                        pass: user.password
+                    }
+                },
+                false,
+                22
+            ) +
+            ');';
+
+        req.flash('success', 'Account created for ' + user.address);
+
+        res.render('create', {
+            activeCreate: true,
+            id,
+            user,
+            json
+        });
+    });
+});
+
 module.exports = router;
 
 function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
@@ -936,7 +998,7 @@ function renderRoute(route, opts) {
 
 function checkLogin(req, res, next) {
     if (!req.user) {
-        req.flash('Authentication required');
+        req.flash('danger', 'Authentication required');
         return res.redirect('/login');
     }
     next();
@@ -1103,4 +1165,16 @@ function renderAttachment(req, res, next, data) {
             }
         });
     });
+}
+
+function getId() {
+    let id;
+    let tries = 0;
+    while (++tries < 100) {
+        id = base32.encode(crypto.randomBytes(15)).toLowerCase();
+        if (/^[a-z]/.test(id)) {
+            return id;
+        }
+    }
+    return id;
 }

@@ -32,11 +32,14 @@
                 <button type="submit" class="btn btn-primary"><span class="oi oi-account-login" title="Ethereal" aria-hidden="true"></span> Log in</button>
             </div>
         </form>
-
-
     </div>
 </div>
 
-<p>
-    Don't have an Ethereal user account yet? Create one from <a href="https://nodemailer.com/about/#example">Nodemailer</a> with the <code>createTestAccount</code> method.
-</p>
+<form method="post" action="/create">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <p>
+        Don't have an Ethereal user account yet?</p>
+        <p>
+            Create one from <a href="https://nodemailer.com/about/#example">Nodemailer</a> with the <code>createTestAccount</code> method or <button type="submit" class="btn btn-primary btn-sm"><span class="oi oi-plus" title="Ethereal" aria-hidden="true"></span> create user here</button>
+    </p>
+</form>

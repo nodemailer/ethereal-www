@@ -62,17 +62,17 @@ td {
     font-size: 14px;
 }
 
-pre {
+pre.numbered {
     background-color: #fff;
     padding: 0.5em;
     line-height: 0;
     counter-reset: line;
 }
-pre span {
+pre.numbered span {
     display: block;
     line-height: 1.5rem;
 }
-pre span:before {
+pre.numbered span:before {
     text-align: right;
     width: 40px;
     -webkit-user-select: none;

@@ -31,3 +31,7 @@ All sent messages can be found from the _Sent Mail_ folder (unless 7 days has pa
 #### 8\. How is this sustainable
 
 Ethereal Email service is funded by the ads displayed on [Nodemailer.com](https://nodemailer.com/about/). So don't forget to click on these banners!
+
+#### 9\. Must I use Nodemailer for Ethereal?
+
+No, you can use any mail client or library that supports SMTP
