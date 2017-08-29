@@ -64,90 +64,140 @@ router.get('/message/:id/source', (req, res, next) => {
         return next(err);
     }
 
-    let mailbox = new ObjectID(data.mailboxId);
-    let message = new ObjectID(data.messageId);
-    let uid = data.uid;
+    renderSource(req, res, next, data);
+});
 
-    db.database.collection('messages').findOne({
-        _id: message,
-        mailbox,
-        uid
+router.get('/messages/:mailbox/:message/source', checkLogin, (req, res, next) => {
+    const schema = Joi.object().keys({
+        mailbox: Joi.string().hex().lowercase().length(24).required(),
+        message: Joi.number().min(1).required()
+    });
+
+    const result = Joi.validate(req.params, schema, {
+        abortEarly: false,
+        convert: true,
+        allowUnknown: true
+    });
+
+    if (result.error) {
+        let err = new Error(result.error.message);
+        err.status = 500;
+        return next(err);
+    }
+
+    db.database.collection('mailboxes').findOne({
+        _id: new ObjectID(result.value.mailbox)
     }, {
         fields: {
             _id: true,
-            user: true,
-            mailbox: true,
-            uid: true,
-            mimeTree: true
+            user: true
         }
-    }, (err, messageData) => {
+    }, (err, mailboxData) => {
         if (err) {
-            return next(err);
-        }
-
-        if (!messageData) {
-            let err = new Error('This message does not exist');
-            err.status = 404;
-            return next(err);
-        }
-
-        let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
-        let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
-
-        let subject = parsedHeader.subject;
-        try {
-            subject = libmime.decodeWords(subject);
-        } catch (E) {
-            //
-        }
-
-        let raw = db.messageHandler.indexer.rebuild(messageData.mimeTree);
-        if (!raw || raw.type !== 'stream' || !raw.value) {
-            let err = new Error('This message does not exist');
-            err.status = 404;
-            return next(err);
-        }
-
-        let chunks = [];
-        let chunklen = 0;
-        let ignore = false;
-        let ignoreBytes = 0;
-
-        raw.value.on('readable', () => {
-            let chunk;
-            while ((chunk = raw.value.read()) !== null) {
-                if (!ignore) {
-                    chunks.push(chunk);
-                    chunklen += chunk.length;
-                    if (chunklen > 728 * 1024) {
-                        ignore = true;
-                    }
-                } else {
-                    ignoreBytes += chunk.length;
-                }
-            }
-        });
-
-        raw.value.once('error', err => {
-            err.message = 'Database error. ' + err.message;
+            err.message = 'MongoDB Error: ' + err.message;
             err.status = 500;
             return next(err);
-        });
+        }
+        if (!mailboxData) {
+            let err = new Error('This mailbox does not exist');
+            err.status = 404;
+            return next(err);
+        }
 
-        raw.value.once('end', () => {
-            if (ignoreBytes) {
-                let chunk = Buffer.from('\n<+ ' + humanize.filesize(ignoreBytes) + ' ...>');
-                chunks.push(chunk);
-                chunklen += chunk.length;
+        if (mailboxData.user.toString() !== req.user.id.toString()) {
+            let err = new Error('Not authorized to see requested message');
+            err.status = 403;
+            return next(err);
+        }
+
+        renderSource(req, res, next, {
+            mailboxId: mailboxData._id,
+            uid: result.value.message,
+            usePrivateUrl: true
+        });
+    });
+});
+
+router.get('/messages/:mailbox/:message/message.eml', checkLogin, (req, res, next) => {
+    const schema = Joi.object().keys({
+        mailbox: Joi.string().hex().lowercase().length(24).required(),
+        message: Joi.number().min(1).required()
+    });
+
+    const result = Joi.validate(req.params, schema, {
+        abortEarly: false,
+        convert: true,
+        allowUnknown: true
+    });
+
+    if (result.error) {
+        let err = new Error(result.error.message);
+        err.status = 500;
+        return next(err);
+    }
+
+    db.database.collection('mailboxes').findOne({
+        _id: new ObjectID(result.value.mailbox)
+    }, {
+        fields: {
+            _id: true,
+            user: true
+        }
+    }, (err, mailboxData) => {
+        if (err) {
+            err.message = 'MongoDB Error: ' + err.message;
+            err.status = 500;
+            return next(err);
+        }
+        if (!mailboxData) {
+            let err = new Error('This mailbox does not exist');
+            err.status = 404;
+            return next(err);
+        }
+
+        if (mailboxData.user.toString() !== req.user.id.toString()) {
+            let err = new Error('Not authorized to see requested message');
+            err.status = 403;
+            return next(err);
+        }
+
+        let mailbox = mailboxData._id;
+        let uid = result.value.message;
+
+        db.database.collection('messages').findOne({
+            mailbox,
+            uid
+        }, {
+            fields: {
+                _id: true,
+                user: true,
+                mimeTree: true
+            }
+        }, (err, messageData) => {
+            if (err) {
+                return next(err);
             }
 
-            let source = '<span>' + he.encode(Buffer.concat(chunks, chunklen).toString()).replace(/\r?\n/g, '</span>\n<span>') + '</span>';
+            if (!messageData) {
+                let err = new Error('This message does not exist');
+                err.status = 404;
+                return next(err);
+            }
 
-            res.render('source', {
-                id: req.params.id,
-                publicId,
-                subject,
-                source
+            let raw = db.messageHandler.indexer.rebuild(messageData.mimeTree);
+            if (!raw || raw.type !== 'stream' || !raw.value) {
+                let err = new Error('This message does not exist');
+                err.status = 404;
+                return next(err);
+            }
+
+            res.setHeader('Content-Type', 'message/rfc822');
+            raw.value.pipe(res);
+
+            raw.value.once('error', err => {
+                err.message = 'Database error. ' + err.message;
+                err.status = 500;
+                return next(err);
             });
         });
     });
@@ -212,153 +262,56 @@ router.get('/message/:id', (req, res, next) => {
         return next(err);
     }
 
-    let mailbox = new ObjectID(data.mailboxId);
-    let message = new ObjectID(data.messageId);
-    let uid = data.uid;
+    renderMessage(req, res, next, data);
+});
 
-    getMessage(req.params.id, mailbox, message, uid, (err, messageData) => {
+router.get('/messages/:mailbox/:message', checkLogin, (req, res, next) => {
+    const schema = Joi.object().keys({
+        mailbox: Joi.string().hex().lowercase().length(24).required(),
+        message: Joi.number().min(1).required()
+    });
+
+    const result = Joi.validate(req.params, schema, {
+        abortEarly: false,
+        convert: true,
+        allowUnknown: true
+    });
+
+    if (result.error) {
+        let err = new Error(result.error.message);
+        err.status = 500;
+        return next(err);
+    }
+
+    db.database.collection('mailboxes').findOne({
+        _id: new ObjectID(result.value.mailbox)
+    }, {
+        fields: {
+            _id: true,
+            user: true
+        }
+    }, (err, mailboxData) => {
         if (err) {
+            err.message = 'MongoDB Error: ' + err.message;
+            err.status = 500;
+            return next(err);
+        }
+        if (!mailboxData) {
+            let err = new Error('This mailbox does not exist');
+            err.status = 404;
             return next(err);
         }
 
-        let info = [];
-        let envelope = [];
-
-        if (messageData.subject) {
-            info.push({
-                key: 'Subject',
-                value: messageData.subject
-            });
+        if (mailboxData.user.toString() !== req.user.id.toString()) {
+            let err = new Error('Not authorized to see requested message');
+            err.status = 403;
+            return next(err);
         }
 
-        if (messageData.smtpFrom) {
-            envelope.push({
-                key: 'MAIL FROM',
-                isHtml: true,
-                value: messageTools.getAddressesHTML(messageData.smtpFrom)
-            });
-        }
-
-        if (messageData.smtpTo) {
-            envelope.push({
-                key: 'RCPT TO',
-                isHtml: true,
-                value: messageTools.getAddressesHTML(messageData.smtpTo)
-            });
-        }
-
-        if (messageData.meta.origin) {
-            envelope.push({
-                key: 'Address',
-                value: messageData.meta.origin
-            });
-        }
-
-        if (messageData.meta.transhost) {
-            envelope.push({
-                key: 'Greeting',
-                value: messageData.meta.transhost
-            });
-        }
-
-        if (messageData.meta.originhost) {
-            envelope.push({
-                key: 'Hostname',
-                value: messageData.meta.originhost
-            });
-        }
-
-        if (messageData.meta.transtype) {
-            envelope.push({
-                key: 'Protocol',
-                value: messageData.meta.transtype
-            });
-        }
-
-        envelope.push({
-            key: 'Time',
-            isDate: true,
-            value: new Date(messageData.meta.time).toISOString()
-        });
-
-        if (messageData.from) {
-            info.push({
-                key: 'From',
-                isHtml: true,
-                value: messageTools.getAddressesHTML(messageData.from)
-            });
-        }
-
-        if (messageData.sender) {
-            info.push({
-                key: 'From',
-                isHtml: true,
-                value: messageTools.getAddressesHTML(messageData.sender)
-            });
-        }
-
-        if (messageData.replyTo) {
-            info.push({
-                key: 'Reply To',
-                isHtml: true,
-                value: messageTools.getAddressesHTML(messageData.replyTo)
-            });
-        }
-
-        if (messageData.to) {
-            info.push({
-                key: 'To',
-                isHtml: true,
-                value: messageTools.getAddressesHTML(messageData.to)
-            });
-        }
-
-        if (messageData.cc) {
-            info.push({
-                key: 'Cc',
-                isHtml: true,
-                value: messageTools.getAddressesHTML(messageData.cc)
-            });
-        }
-
-        if (messageData.bcc) {
-            info.push({
-                key: 'Bcc',
-                isHtml: true,
-                value: messageTools.getAddressesHTML(messageData.bcc)
-            });
-        }
-
-        info.push({
-            key: 'Time',
-            isDate: true,
-            value: messageData.date
-        });
-
-        info.push({
-            key: 'Message-ID',
-            value: messageData.messageId
-        });
-
-        if (messageData.inReplyTo) {
-            info.push({
-                key: 'In-Reply-To',
-                value: messageData.inReplyTo
-            });
-        }
-
-        messageData.html = (messageData.html || [])
-            .map(html => html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => '/attachment/' + req.params.id + '/' + aid));
-
-        res.render('message', {
-            id: req.params.id,
-            info,
-            activeHeader: req.query.tab === 'header' || !req.query.tab,
-            activeEnvelope: req.query.tab === 'envelope',
-            envelope,
-            hasIframe: true,
-            message: messageData,
-            messageJson: JSON.stringify(messageData).replace(/\//g, '\\u002f')
+        renderMessage(req, res, next, {
+            mailboxId: mailboxData._id,
+            uid: result.value.message,
+            usePrivateUrl: true
         });
     });
 });
@@ -371,63 +324,55 @@ router.get('/attachment/:id/:aid', (req, res, next) => {
         return next(err);
     }
 
-    let mailbox = new ObjectID(data.mailboxId);
-    let message = new ObjectID(data.messageId);
-    let uid = data.uid;
-    let aid = req.params.aid;
+    renderAttachment(req, res, next, data);
+});
 
-    db.database.collection('messages').findOne({
-        _id: message,
-        mailbox,
-        uid
+router.get('/messages/:mailbox/:message/attachment/:aid', checkLogin, (req, res, next) => {
+    const schema = Joi.object().keys({
+        mailbox: Joi.string().hex().lowercase().length(24).required(),
+        message: Joi.number().min(1).required()
+    });
+
+    const result = Joi.validate(req.params, schema, {
+        abortEarly: false,
+        convert: true,
+        allowUnknown: true
+    });
+
+    if (result.error) {
+        let err = new Error(result.error.message);
+        err.status = 500;
+        return next(err);
+    }
+
+    db.database.collection('mailboxes').findOne({
+        _id: new ObjectID(result.value.mailbox)
     }, {
         fields: {
             _id: true,
-            user: true,
-            attachments: true,
-            'mimeTree.attachmentMap': true
+            user: true
         }
-    }, (err, messageData) => {
+    }, (err, mailboxData) => {
         if (err) {
-            err.message = 'Database error.' + err.message;
+            err.message = 'MongoDB Error: ' + err.message;
             err.status = 500;
             return next(err);
         }
-        if (!messageData) {
-            let err = new Error('This message does not exist');
+        if (!mailboxData) {
+            let err = new Error('This mailbox does not exist');
             err.status = 404;
             return next(err);
         }
 
-        let attachmentId = messageData.mimeTree.attachmentMap && messageData.mimeTree.attachmentMap[aid];
-        if (!attachmentId) {
-            let err = new Error('This attachment does not exist');
-            err.status = 404;
+        if (mailboxData.user.toString() !== req.user.id.toString()) {
+            let err = new Error('Not authorized to see requested message');
+            err.status = 403;
             return next(err);
         }
 
-        db.messageHandler.attachmentStorage.get(attachmentId, (err, attachmentData) => {
-            if (err) {
-                err.message = 'Database error.' + err.message;
-                err.status = 500;
-                return next(err);
-            }
-
-            res.writeHead(200, {
-                'Content-Type': attachmentData.contentType || 'application/octet-stream'
-            });
-
-            let attachmentStream = db.messageHandler.attachmentStorage.createReadStream(attachmentId);
-
-            attachmentStream.once('error', err => res.emit('error', err));
-
-            if (attachmentData.transferEncoding === 'base64') {
-                attachmentStream.pipe(new libbase64.Decoder()).pipe(res);
-            } else if (attachmentData.transferEncoding === 'quoted-printable') {
-                attachmentStream.pipe(new libqp.Decoder()).pipe(res);
-            } else {
-                attachmentStream.pipe(res);
-            }
+        renderAttachment(req, res, next, {
+            mailboxId: mailboxData._id,
+            uid: result.value.message
         });
     });
 });
@@ -619,7 +564,7 @@ router.get('/messages', checkLogin, (req, res, next) => {
 
 module.exports = router;
 
-function getMessage(id, mailbox, message, uid, callback) {
+function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
     let query = {};
     if (message) {
         query._id = message;
@@ -662,6 +607,8 @@ function getMessage(id, mailbox, message, uid, callback) {
         }
 
         let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
+        let messageUrl = usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
+        let attachmentUrl = usePrivateUrl ? '/messages/' + mailbox + '/' + uid + '/attachment' : '/attachment/' + publicId;
 
         let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
 
@@ -736,7 +683,7 @@ function getMessage(id, mailbox, message, uid, callback) {
         }
 
         messageData.html = (messageData.html || [])
-            .map(html => html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => '/attachment/' + publicId + '/' + aid));
+            .map(html => html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => attachmentUrl + '/' + aid));
 
         let ensureSeen = done => {
             if (!messageData.unseen) {
@@ -758,6 +705,8 @@ function getMessage(id, mailbox, message, uid, callback) {
             let response = {
                 success: true,
                 id: message,
+                messageUrl,
+                attachmentUrl,
                 uid: messageData.uid,
                 mailbox: messageData.mailbox,
                 user: messageData.user,
@@ -782,7 +731,7 @@ function getMessage(id, mailbox, message, uid, callback) {
                 draft: messageData.draft,
                 html: messageData.html,
                 attachments: (messageData.attachments || []).map(attachment => {
-                    attachment.url = '/attachment/' + publicId + '/' + attachment.id;
+                    attachment.url = attachmentUrl + '/' + attachment.id;
                     return attachment;
                 })
             };
@@ -802,6 +751,160 @@ function getMessage(id, mailbox, message, uid, callback) {
             }
 
             return callback(null, response);
+        });
+    });
+}
+
+function renderMessage(req, res, next, data) {
+    let mailbox = new ObjectID(data.mailboxId);
+    let message = data.messageId ? new ObjectID(data.messageId) : false;
+    let uid = data.uid;
+
+    getMessage(req.params.id, mailbox, message, uid, data.usePrivateUrl, (err, messageData) => {
+        if (err) {
+            return next(err);
+        }
+
+        let info = [];
+        let envelope = [];
+
+        if (messageData.subject) {
+            info.push({
+                key: 'Subject',
+                value: messageData.subject
+            });
+        }
+
+        if (messageData.smtpFrom) {
+            envelope.push({
+                key: 'MAIL FROM',
+                isHtml: true,
+                value: messageTools.getAddressesHTML(messageData.smtpFrom)
+            });
+        }
+
+        if (messageData.smtpTo) {
+            envelope.push({
+                key: 'RCPT TO',
+                isHtml: true,
+                value: messageTools.getAddressesHTML(messageData.smtpTo)
+            });
+        }
+
+        if (messageData.meta.origin) {
+            envelope.push({
+                key: 'Address',
+                value: messageData.meta.origin
+            });
+        }
+
+        if (messageData.meta.transhost) {
+            envelope.push({
+                key: 'Greeting',
+                value: messageData.meta.transhost
+            });
+        }
+
+        if (messageData.meta.originhost) {
+            envelope.push({
+                key: 'Hostname',
+                value: messageData.meta.originhost
+            });
+        }
+
+        if (messageData.meta.transtype) {
+            envelope.push({
+                key: 'Protocol',
+                value: messageData.meta.transtype
+            });
+        }
+
+        envelope.push({
+            key: 'Time',
+            isDate: true,
+            value: new Date(messageData.meta.time).toISOString()
+        });
+
+        if (messageData.from) {
+            info.push({
+                key: 'From',
+                isHtml: true,
+                value: messageTools.getAddressesHTML(messageData.from)
+            });
+        }
+
+        if (messageData.sender) {
+            info.push({
+                key: 'From',
+                isHtml: true,
+                value: messageTools.getAddressesHTML(messageData.sender)
+            });
+        }
+
+        if (messageData.replyTo) {
+            info.push({
+                key: 'Reply To',
+                isHtml: true,
+                value: messageTools.getAddressesHTML(messageData.replyTo)
+            });
+        }
+
+        if (messageData.to) {
+            info.push({
+                key: 'To',
+                isHtml: true,
+                value: messageTools.getAddressesHTML(messageData.to)
+            });
+        }
+
+        if (messageData.cc) {
+            info.push({
+                key: 'Cc',
+                isHtml: true,
+                value: messageTools.getAddressesHTML(messageData.cc)
+            });
+        }
+
+        if (messageData.bcc) {
+            info.push({
+                key: 'Bcc',
+                isHtml: true,
+                value: messageTools.getAddressesHTML(messageData.bcc)
+            });
+        }
+
+        info.push({
+            key: 'Time',
+            isDate: true,
+            value: messageData.date
+        });
+
+        info.push({
+            key: 'Message-ID',
+            value: messageData.messageId
+        });
+
+        if (messageData.inReplyTo) {
+            info.push({
+                key: 'In-Reply-To',
+                value: messageData.inReplyTo
+            });
+        }
+
+        messageData.html = (messageData.html || [])
+            .map(html => html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => messageData.attachmentUrl + '/' + aid));
+
+        res.render('message', {
+            id: req.params.id,
+            info,
+            messageUrl: messageData.messageUrl,
+            attachmentUrl: messageData.attachmentUrl,
+            activeHeader: req.query.tab === 'header' || !req.query.tab,
+            activeEnvelope: req.query.tab === 'envelope',
+            envelope,
+            hasIframe: true,
+            message: messageData,
+            messageJson: JSON.stringify(messageData).replace(/\//g, '\\u002f')
         });
     });
 }
@@ -831,4 +934,163 @@ function checkLogin(req, res, next) {
         return res.redirect('/login');
     }
     next();
+}
+
+function renderSource(req, res, next, data) {
+    let mailbox = new ObjectID(data.mailboxId);
+    let message = data.messageId ? new ObjectID(data.messageId) : false;
+    let uid = data.uid;
+
+    let query = {};
+    if (message) {
+        query._id = message;
+    }
+    query.mailbox = mailbox;
+    query.uid = uid;
+
+    db.database.collection('messages').findOne(query, {
+        fields: {
+            _id: true,
+            user: true,
+            mailbox: true,
+            uid: true,
+            mimeTree: true
+        }
+    }, (err, messageData) => {
+        if (err) {
+            return next(err);
+        }
+
+        if (!messageData) {
+            let err = new Error('This message does not exist');
+            err.status = 404;
+            return next(err);
+        }
+
+        let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
+        let messageUrl = data.usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
+
+        let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
+
+        let subject = parsedHeader.subject;
+        try {
+            subject = libmime.decodeWords(subject);
+        } catch (E) {
+            //
+        }
+
+        let raw = db.messageHandler.indexer.rebuild(messageData.mimeTree);
+        if (!raw || raw.type !== 'stream' || !raw.value) {
+            let err = new Error('This message does not exist');
+            err.status = 404;
+            return next(err);
+        }
+
+        let chunks = [];
+        let chunklen = 0;
+        let ignore = false;
+        let ignoreBytes = 0;
+
+        raw.value.on('readable', () => {
+            let chunk;
+            while ((chunk = raw.value.read()) !== null) {
+                if (!ignore) {
+                    chunks.push(chunk);
+                    chunklen += chunk.length;
+                    if (chunklen > 728 * 1024) {
+                        ignore = true;
+                    }
+                } else {
+                    ignoreBytes += chunk.length;
+                }
+            }
+        });
+
+        raw.value.once('error', err => {
+            err.message = 'Database error. ' + err.message;
+            err.status = 500;
+            return next(err);
+        });
+
+        raw.value.once('end', () => {
+            if (ignoreBytes) {
+                let chunk = Buffer.from('\n<+ ' + humanize.filesize(ignoreBytes) + ' ...>');
+                chunks.push(chunk);
+                chunklen += chunk.length;
+            }
+
+            let source = '<span>' + he.encode(Buffer.concat(chunks, chunklen).toString()).replace(/\r?\n/g, '</span>\n<span>') + '</span>';
+
+            res.render('source', {
+                messageUrl,
+                subject,
+                source
+            });
+        });
+    });
+}
+
+function renderAttachment(req, res, next, data) {
+    let mailbox = new ObjectID(data.mailboxId);
+    let message = data.messageId ? new ObjectID(data.messageId) : false;
+    let uid = data.uid;
+    let aid = req.params.aid;
+
+    let query = {};
+    if (message) {
+        query._id = message;
+    }
+    query.mailbox = mailbox;
+    query.uid = uid;
+
+    db.database.collection('messages').findOne(query, {
+        fields: {
+            _id: true,
+            user: true,
+            attachments: true,
+            'mimeTree.attachmentMap': true
+        }
+    }, (err, messageData) => {
+        if (err) {
+            err.message = 'Database error.' + err.message;
+            err.status = 500;
+            return next(err);
+        }
+        if (!messageData) {
+            let err = new Error('This message does not exist');
+            err.status = 404;
+            return next(err);
+        }
+
+        let attachmentId = messageData.mimeTree.attachmentMap && messageData.mimeTree.attachmentMap[aid];
+        if (!attachmentId) {
+            let err = new Error('This attachment does not exist');
+            err.status = 404;
+            return next(err);
+        }
+
+        db.messageHandler.attachmentStorage.get(attachmentId, (err, attachmentData) => {
+            if (err) {
+                err.message = 'Database error.' + err.message;
+                err.status = 500;
+                return next(err);
+            }
+
+            res.writeHead(200, {
+                'Content-Type': attachmentData.contentType || 'application/octet-stream'
+            });
+
+            let attachmentStream = db.messageHandler.attachmentStorage.createReadStream(attachmentId);
+
+            attachmentStream.once('error', err => res.emit('error', err));
+
+            if (attachmentData.transferEncoding === 'base64') {
+                attachmentStream.pipe(new libbase64.Decoder()).pipe(res);
+            } else if (attachmentData.transferEncoding === 'quoted-printable') {
+                attachmentStream.pipe(new libqp.Decoder()).pipe(res);
+            } else {
+                attachmentStream.pipe(res);
+            }
+        });
+    });
 }

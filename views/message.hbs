@@ -6,19 +6,23 @@
         <a class="nav-link{{#if activeEnvelope}} active{{/if}}" id="message-envelope-tab" data-toggle="tab" href="#message-envelope" role="tab" aria-controls="message-envelope">Envelope</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="/message/{{message.publicId}}/source">Source</a>
+        <a class="nav-link" href="{{messageUrl}}/source">Source</a>
     </li>
 </ul>
 <div class="tab-content" id="myTabContent">
     {{#if message.attachments}}
         <div class="float-right attachment-list">
             {{#each message.attachments}}
-                <a class="btn btn-secondary btn-sm" href="/attachment/{{../id}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-paperclip" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
+                <a class="btn btn-secondary btn-sm" href="{{../attachmentUrl}}/{{id}}" role="button" download="{{fileName}}"><span class="oi oi-paperclip" title="Download attachment" aria-hidden="true"></span> {{fileName}}</a>
             {{/each}}
         </div>
     {{/if}}
 
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
+        <div>
+            <strong>Public URL:</strong>
+            <a href="/message/{{message.publicId}}">click here</a> (does not require authentication)
+        </div>
         {{#each info}}
             <div>
                 <strong>{{key}}:</strong>
