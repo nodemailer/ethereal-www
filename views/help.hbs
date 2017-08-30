@@ -110,31 +110,9 @@
 </div>
 
 <div>
-<p>
-    <strong>Example</strong> for switching between a real sending account and Ethereal depending on the NODE_ENV context.
-</p>
+<h3>Examples</h3>
 
-    <pre>var transporter;
-if (process.env.NODE_ENV === 'production' ){
-    // all emails are delivered to destination
-    transporter = nodemailer.createTransport({
-        host: 'smtp.sendgrid.net',
-        port: 587,
-        auth: {
-            user: 'real.user',
-            user: 'verysecret'
-        }
-    });
-} else {
-    // all emails are catched by ethereal.email
-    transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        auth: {
-            user: 'ethereal.user@ethereal.email',
-            user: 'verysecret'
-        }
-    });
-}
-transporter.sendMail(...)</pre>
+Example for switching between a real sending account and Ethereal depending on the <code>NODE_ENV</code> context. This way you ca be sure that your development environment is not going to spam your customers.
+
+    <script src="https://gist.github.com/andris9/af3b041d12816c9e2899de7bfd5056aa.js"></script>
 </div>
