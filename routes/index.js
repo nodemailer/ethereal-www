@@ -31,9 +31,17 @@ router.use(passport.csrf);
 
 /* GET home page. */
 router.get('/', (req, res) => {
-    res.render('index', {
-        activeHome: true,
-        page: mdrender('index', { title: 'test' })
+    db.redis.multi().get('api:create').get('www:create').get('msa:count:accept').exec((err, results) => {
+        if (err) {
+            // ignore
+        }
+        results = results || [];
+        res.render('index', {
+            activeHome: true,
+            accounts: (Number(results[0]) || 0) + (Number(results[1]) || 0),
+            messages: Number(results[2]) || 0,
+            page: mdrender('index', { title: 'test' })
+        });
     });
 });
 

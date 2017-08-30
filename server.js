@@ -4,10 +4,10 @@
  * Module dependencies.
  */
 
-let config = require('wild-config');
-let log = require('npmlog');
-let app = require('./app');
-let http = require('http');
+const config = require('wild-config');
+const log = require('npmlog');
+const app = require('./app');
+const http = require('http');
 const db = require('./lib/db');
 
 let port = config.www.port;
