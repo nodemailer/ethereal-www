@@ -1186,7 +1186,7 @@ function getId() {
     let id;
     let tries = 0;
     while (++tries < 100) {
-        id = base32.encode(crypto.randomBytes(15)).toLowerCase();
+        id = base32.encode(crypto.randomBytes(10)).toLowerCase();
         if (/^[a-z]/.test(id)) {
             return id;
         }
