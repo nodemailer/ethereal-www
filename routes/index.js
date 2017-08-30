@@ -611,23 +611,6 @@ router.post('/create', (req, res, next) => {
             return next(err);
         }
 
-        let json =
-            'const transporter = nodemailer.createTransport(' +
-            util.inspect(
-                {
-                    host: 'smtp.ethereal.email',
-                    port: 587,
-                    secure: false,
-                    auth: {
-                        user: user.address,
-                        pass: user.password
-                    }
-                },
-                false,
-                22
-            ) +
-            ');';
-
         req.flash('success', 'Account created for ' + user.address);
 
         db.redis.incr('www:create', () => false);
@@ -636,7 +619,8 @@ router.post('/create', (req, res, next) => {
             activeCreate: true,
             id,
             user,
-            json
+            encodedUser: user.address,
+            encodedPass: user.password.replace(/'/g, '\\\'')
         });
     });
 });

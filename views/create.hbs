@@ -35,7 +35,14 @@
     <div>
         <strong>Nodemailer configuration:</strong>
     </div>
-    <pre>{{json}}</pre>
+    <pre>const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+        user: '{{encodedUser}}',
+        pass: '{{encodedPass}}'
+    }
+});</pre>
 </div>
 
 <h4>SMTP configuration</h4>
