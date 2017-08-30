@@ -591,9 +591,9 @@ router.post('/create', (req, res, next) => {
     let user = {
         username,
         password: generatePassword.generate({
-            length: 16,
+            length: 18,
             numbers: true,
-            symbols: true,
+            symbols: false,
             excludeSimilarCharacters: true
         }),
         address: username + '@' + config.service.domain,
