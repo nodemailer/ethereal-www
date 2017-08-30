@@ -27,7 +27,7 @@
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
         {{#if activeMessages}}
             <div>
-                <span class="oi oi-link" title="Public URL" aria-hidden="true"></span> <a href="/message/{{message.publicId}}">Public URL</a> (does not require authentication)
+                <span class="oi oi-link-intact" title="Public URL" aria-hidden="true"></span> <a href="/message/{{message.publicId}}">Public URL</a> (does not require authentication)
             </div>
         {{/if}}
         {{#each info}}
