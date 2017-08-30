@@ -844,7 +844,7 @@ function renderMessage(req, res, next, data) {
             return next(err);
         }
 
-        let warnPublic = data.warnPublic && req.user && req.user.id.toString() === messageData.user.toString();
+        let warnPublic = data.warnPublic;
 
         let info = [];
         let envelope = [];
