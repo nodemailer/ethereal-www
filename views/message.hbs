@@ -21,8 +21,8 @@
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
         {{#if activeMessages}}
 
-            <a class="btn btn-link btn-sm" href="/message/{{message.publicId}}" role="button"><span class="oi oi-cloud-link-intact" title="Public URL" aria-hidden="true"></span> Public URL of this message</a>
-        
+            <a class="btn btn-link btn-sm" href="/message/{{message.publicId}}" role="button"><span class="oi oi-link-intact" title="Public URL" aria-hidden="true"></span> Public URL of this message</a>
+
         {{/if}}
         {{#each info}}
             <div>
