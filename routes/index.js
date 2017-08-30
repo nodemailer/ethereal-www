@@ -979,6 +979,7 @@ function renderMessage(req, res, next, data) {
             id: req.params.id,
             info,
             warnPublic,
+            usePrivateUrl: data.usePrivateUrl,
             messageUrl: messageData.messageUrl,
             attachmentUrl: messageData.attachmentUrl,
             activeHeader: req.query.tab === 'header' || !req.query.tab,
@@ -1050,7 +1051,7 @@ function renderSource(req, res, next, data) {
             return next(err);
         }
 
-        let warnPublic = data.warnPublic && req.user && req.user.id.toString() === messageData.user.toString();
+        let warnPublic = data.warnPublic;
 
         let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
         let messageUrl = data.usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
