@@ -27,8 +27,7 @@
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
         {{#if usePrivateUrl}}
             <div>
-                <strong>Public URL:</strong>
-                <a href="/message/{{message.publicId}}">click here</a> (does not require authentication)
+                <a href="/message/{{message.publicId}}">Public URL</a> (does not require authentication)
             </div>
         {{/if}}
         {{#each info}}
