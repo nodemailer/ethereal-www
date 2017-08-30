@@ -20,7 +20,6 @@ const addressparser = require('addressparser');
 const humanize = require('humanize');
 const base32 = require('hi-base32');
 const crypto = require('crypto');
-const util = require('util');
 const ObjectID = require('mongodb').ObjectID;
 const etherealId = new EtherealId({
     secret: config.service.msgidSecret,

@@ -1,7 +1,8 @@
 <h1>New account</h1>
 
 <p>
-    Here you can find all the details needed to access your new test account. Remember that if sending messages through SMTP then no message is actually delivered, all messages are catched and you can see these in the Messages page or by using your favorite IMAP/POP3 client.
+    Here you can find all the details needed to access your new test account. Remember that if sending messages through SMTP then no message is actually delivered, all messages are catched and you can see these in the Messages page or by using your favorite
+    IMAP/POP3 client.
 </p>
 
 <h4>Account credentials</h4>
@@ -15,7 +16,7 @@
                         Username
                     </th>
                     <td>
-                        <code>{{user.address}}</code>
+                        <code>{{user.address}}</code> (also works as a real inbound email address)
                     </td>
                 </tr>
                 <tr>
@@ -31,11 +32,11 @@
     </div>
 </div>
 
-<div>
-    <div>
-        <strong>Nodemailer configuration:</strong>
-    </div>
-    <pre>const transporter = nodemailer.createTransport({
+<h4>Nodemailer configuration</h4>
+
+<div class="row">
+    <div class="col-12">
+        <pre>const transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
     port: 587,
     auth: {
@@ -43,6 +44,7 @@
         pass: '{{encodedPass}}'
     }
 });</pre>
+    </div>
 </div>
 
 <h4>SMTP configuration</h4>
