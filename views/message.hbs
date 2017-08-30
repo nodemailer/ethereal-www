@@ -25,10 +25,12 @@
     {{/if}}
 
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
-        <div>
-            <strong>Public URL:</strong>
-            <a href="/message/{{message.publicId}}">click here</a> (does not require authentication)
-        </div>
+        {{#if usePrivateUrl}}
+            <div>
+                <strong>Public URL:</strong>
+                <a href="/message/{{message.publicId}}">click here</a> (does not require authentication)
+            </div>
+        {{/if}}
         {{#each info}}
             <div>
                 <strong>{{key}}:</strong>
