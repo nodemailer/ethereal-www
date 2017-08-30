@@ -612,7 +612,7 @@ router.post('/create', (req, res, next) => {
         }
 
         let json =
-            'const transport = nodemailer.createTransport(' +
+            'const transporter = nodemailer.createTransport(' +
             util.inspect(
                 {
                     host: 'smtp.ethereal.email',
