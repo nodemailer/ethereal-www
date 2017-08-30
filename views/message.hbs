@@ -20,9 +20,9 @@
 
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
         {{#if activeMessages}}
-            <div style="margin-bottom:3px; padding-bottom: 3px; border-bottom: 1px solid rgba(86, 61, 124, .2)">
-                <span class="oi oi-link-intact" title="Public URL" aria-hidden="true"></span> <a href="/message/{{message.publicId}}">Public URL</a> (does not require authentication)
-            </div>
+
+            <a class="btn btn-link btn-sm" href="/message/{{message.publicId}}" role="button"><span class="oi oi-cloud-link-intact" title="Public URL" aria-hidden="true"></span> Public URL of this message</a>
+        
         {{/if}}
         {{#each info}}
             <div>
