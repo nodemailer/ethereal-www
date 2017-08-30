@@ -270,8 +270,11 @@ router.get('/message/:id', (req, res, next) => {
     if (!data) {
         let err = new Error('Invalid or unknown message identifier');
         err.status = 404;
+        db.redis.incr('www:404:public', () => false);
         return next(err);
     }
+
+    db.redis.incr('www:view:public', () => false);
 
     data.warnPublic = true;
     renderMessage(req, res, next, data);
@@ -319,6 +322,8 @@ router.get('/messages/:mailbox/:message', checkLogin, (req, res, next) => {
             err.status = 403;
             return next(err);
         }
+
+        db.redis.incr('www:view:private', () => false);
 
         renderMessage(req, res, next, {
             mailboxId: mailboxData._id,
@@ -616,6 +621,8 @@ router.post('/create', (req, res, next) => {
             ');';
 
         req.flash('success', 'Account created for ' + user.address);
+
+        db.redis.incr('www:create', () => false);
 
         res.render('create', {
             activeCreate: true,
