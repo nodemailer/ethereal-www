@@ -37,3 +37,9 @@ Ethereal Email service is funded by the ads displayed on [Nodemailer.com](https:
 #### 9\. Must I use Nodemailer for Ethereal?
 
 No, you can use any mail client or library that supports SMTP, be it PHPMailer or even Outlook Express.
+
+#### 10\. Is there an example?
+
+Yes, below is a screenshot of an email catched by Ethereal
+
+![](https://cldup.com/D5Cj_C1Vw3.png)
