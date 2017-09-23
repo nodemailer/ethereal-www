@@ -929,7 +929,7 @@ function renderMessage(req, res, next, data) {
         }
 
         envelope.push({
-            key: 'Time',
+            key: 'Received time',
             isDate: true,
             value: new Date(messageData.meta.time).toISOString()
         });
@@ -1008,6 +1008,7 @@ function renderMessage(req, res, next, data) {
             id: req.params.id,
             info,
             warnPublic,
+            expires: messageData.expires,
             usePrivateUrl: data.usePrivateUrl,
             messageUrl: messageData.messageUrl,
             attachmentUrl: messageData.attachmentUrl,
@@ -1070,9 +1071,7 @@ function renderSource(req, res, next, data) {
             user: true,
             mailbox: true,
             uid: true,
-            mimeTree: true,
-            exp: true,
-            rdate: true
+            mimeTree: true
         }
     }, (err, messageData) => {
         if (err) {
@@ -1144,7 +1143,6 @@ function renderSource(req, res, next, data) {
             res.render('source', {
                 messageUrl,
                 warnPublic,
-                expires: messageData.exp ? new Date(messageData.rdate).toISOString() : false,
                 subject,
                 source,
                 activeMessages: data.usePrivateUrl
