@@ -30,18 +30,23 @@ router.use(passport.csrf);
 
 /* GET home page. */
 router.get('/', (req, res) => {
-    db.redis.multi().get('api:create').get('www:create').get('msa:count:accept').exec((err, results) => {
-        if (err) {
-            // ignore
-        }
-        results = results || [];
-        res.render('index', {
-            activeHome: true,
-            accounts: humanize.numberFormat((Number(results[0]) || 0) + (Number(results[1]) || 0), 0, ',', ' '),
-            messages: humanize.numberFormat(Number(results[2]) || 0, 0, ',', ' '),
-            page: mdrender('index', { title: 'test' })
+    db.redis
+        .multi()
+        .get('api:create')
+        .get('www:create')
+        .get('msa:count:accept')
+        .exec((err, results) => {
+            if (err) {
+                // ignore
+            }
+            results = results || [];
+            res.render('index', {
+                activeHome: true,
+                accounts: humanize.numberFormat((Number(results[0]) || 0) + (Number(results[1]) || 0), 0, ',', ' '),
+                messages: humanize.numberFormat(Number(results[2]) || 0, 0, ',', ' '),
+                page: mdrender('index', { title: 'test' })
+            });
         });
-    });
 });
 
 router.get('/faq', (req, res) => {
@@ -87,8 +92,14 @@ router.get('/message/:id/source', (req, res, next) => {
 
 router.get('/messages/:mailbox/:message/source', checkLogin, (req, res, next) => {
     const schema = Joi.object().keys({
-        mailbox: Joi.string().hex().lowercase().length(24).required(),
-        message: Joi.number().min(1).required()
+        mailbox: Joi.string()
+            .hex()
+            .lowercase()
+            .length(24)
+            .required(),
+        message: Joi.number()
+            .min(1)
+            .required()
     });
 
     const result = Joi.validate(req.params, schema, {
@@ -138,8 +149,14 @@ router.get('/messages/:mailbox/:message/source', checkLogin, (req, res, next) =>
 
 router.get('/messages/:mailbox/:message/message.eml', checkLogin, (req, res, next) => {
     const schema = Joi.object().keys({
-        mailbox: Joi.string().hex().lowercase().length(24).required(),
-        message: Joi.number().min(1).required()
+        mailbox: Joi.string()
+            .hex()
+            .lowercase()
+            .length(24)
+            .required(),
+        message: Joi.number()
+            .min(1)
+            .required()
     });
 
     const result = Joi.validate(req.params, schema, {
@@ -289,8 +306,14 @@ router.get('/message/:id', (req, res, next) => {
 
 router.get('/messages/:mailbox/:message', checkLogin, (req, res, next) => {
     const schema = Joi.object().keys({
-        mailbox: Joi.string().hex().lowercase().length(24).required(),
-        message: Joi.number().min(1).required()
+        mailbox: Joi.string()
+            .hex()
+            .lowercase()
+            .length(24)
+            .required(),
+        message: Joi.number()
+            .min(1)
+            .required()
     });
 
     const result = Joi.validate(req.params, schema, {
@@ -353,8 +376,14 @@ router.get('/attachment/:id/:aid', (req, res, next) => {
 
 router.get('/messages/:mailbox/:message/attachment/:aid', checkLogin, (req, res, next) => {
     const schema = Joi.object().keys({
-        mailbox: Joi.string().hex().lowercase().length(24).required(),
-        message: Joi.number().min(1).required()
+        mailbox: Joi.string()
+            .hex()
+            .lowercase()
+            .length(24)
+            .required(),
+        message: Joi.number()
+            .min(1)
+            .required()
     });
 
     const result = Joi.validate(req.params, schema, {
@@ -403,11 +432,26 @@ router.get('/messages/:mailbox/:message/attachment/:aid', checkLogin, (req, res,
 
 router.get('/messages', checkLogin, (req, res, next) => {
     const schema = Joi.object().keys({
-        limit: Joi.number().empty('').default(20).min(1).max(250),
-        order: Joi.any().empty('').allow(['asc', 'desc']).default('desc'),
-        next: Joi.string().empty('').alphanum().max(100),
-        previous: Joi.string().empty('').alphanum().max(100),
-        page: Joi.number().empty('').default(1)
+        limit: Joi.number()
+            .empty('')
+            .default(20)
+            .min(1)
+            .max(250),
+        order: Joi.any()
+            .empty('')
+            .allow(['asc', 'desc'])
+            .default('desc'),
+        next: Joi.string()
+            .empty('')
+            .alphanum()
+            .max(100),
+        previous: Joi.string()
+            .empty('')
+            .alphanum()
+            .max(100),
+        page: Joi.number()
+            .empty('')
+            .default(1)
     });
 
     const result = Joi.validate(req.query, schema, {
@@ -531,7 +575,7 @@ router.get('/messages', checkLogin, (req, res, next) => {
                     results: (result.results || []).map(messageData => {
                         let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
                         let from = parsedHeader.from ||
-                        parsedHeader.sender || [
+                            parsedHeader.sender || [
                                 {
                                     name: '',
                                     address: (messageData.meta && messageData.meta.from) || ''
@@ -744,8 +788,9 @@ function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
             expires = new Date(messageData.rdate).toISOString();
         }
 
-        messageData.html = (messageData.html || [])
-            .map(html => html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => attachmentUrl + '/' + aid));
+        messageData.html = (messageData.html || []).map(html =>
+            html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => attachmentUrl + '/' + aid)
+        );
 
         let ensureSeen = done => {
             if (!messageData.unseen) {
@@ -955,8 +1000,9 @@ function renderMessage(req, res, next, data) {
             });
         }
 
-        messageData.html = (messageData.html || [])
-            .map(html => html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => messageData.attachmentUrl + '/' + aid));
+        messageData.html = (messageData.html || []).map(html =>
+            html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => messageData.attachmentUrl + '/' + aid)
+        );
 
         res.render('message', {
             id: req.params.id,
@@ -991,7 +1037,10 @@ function getFilteredMessageCount(db, filter, done) {
 }
 
 function renderRoute(route, opts) {
-    let query = Object.keys(opts || {}).filter(key => opts[key]).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(opts[key])).join('&');
+    let query = Object.keys(opts || {})
+        .filter(key => opts[key])
+        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(opts[key]))
+        .join('&');
     return route + (query.length ? '?' + query : '');
 }
 
@@ -1021,7 +1070,9 @@ function renderSource(req, res, next, data) {
             user: true,
             mailbox: true,
             uid: true,
-            mimeTree: true
+            mimeTree: true,
+            exp: true,
+            rdate: true
         }
     }, (err, messageData) => {
         if (err) {
@@ -1093,6 +1144,7 @@ function renderSource(req, res, next, data) {
             res.render('source', {
                 messageUrl,
                 warnPublic,
+                expires: messageData.exp ? new Date(messageData.rdate).toISOString() : false,
                 subject,
                 source,
                 activeMessages: data.usePrivateUrl

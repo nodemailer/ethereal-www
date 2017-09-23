@@ -42,6 +42,14 @@
                 </span>
             </div>
         {{/each}}
+        {{#if expires}}
+            <div>
+                <strong>Message expires:</strong>
+                <span class="datestring" title="{{expires}}">
+                    {{expires}}
+                </span>
+            </div>
+        {{/if}}
     </div>
 </div>
 
