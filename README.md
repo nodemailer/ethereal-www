@@ -1,25 +1,33 @@
-# WildDuck Mail Service
+# Ethereal-WWW
 
 **What is this?**
 
-This is an example web service that uses the [Wild Duck API](https://github.com/nodemailer/wildduck/wiki/API-Docs) to manage user settings and preview messages
+This is the front end service for https://ethereal.email
+
+## Requirements
+
+* Node.js v6+
+* MongoDB 3+
+* Redis
+
+## Components
+
+To run Ethereal you need to have the following components:
+
+1. ethereal-www (this application) to show the web interface
+2. [ethereal-msa](https://github.com/andris9/ethereal-msa) to accept mail
+3. [Wild Duck Mail Server](https://github.com/nodemailer/wildduck) to store user accounts and messages
 
 ## Usage
 
-Assuming that you have Wild Duck mail server running
+Once you have started Wild Duck Mail Server and ethereal-msa, install dependencies and start the app:
 
 ```
 $ npm install --production
 $ node server.js
 ```
 
-You can also create an additional service specific configuration file that would be merged with the default config.
-
-```
-$ node server.js --config="/etc/wildduck/www.toml"
-```
-
-After you have started the server, head to http://localhost:3000/
+After you have started the server, head to http://localhost:5999/
 
 ## License
 
