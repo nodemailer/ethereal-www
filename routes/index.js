@@ -1201,7 +1201,7 @@ function renderAttachment(req, res, next, data) {
                 'Content-Type': attachmentData.contentType || 'application/octet-stream'
             });
 
-            let attachmentStream = db.messageHandler.attachmentStorage.createReadStream(attachmentId);
+            let attachmentStream = db.messageHandler.attachmentStorage.createReadStream(attachmentId, attachmentData);
 
             attachmentStream.once('error', err => res.emit('error', err));
 
