@@ -41,8 +41,8 @@
 <div class="row">
     <div class="col-12">
         <pre>const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
+    host: '{{smtp.host}}',
+    port: {{smtp.port}},
     auth: {
         user: '{{encodedUser}}',
         pass: '{{encodedPass}}'
@@ -56,19 +56,19 @@
     <div class="col-12">
         <pre>$mail = new PHPMailer(true);
 $mail->isSMTP();
-$mail->Host = 'smtp.ethereal.email';
+$mail->Host = '{{smtp.host}}';
 $mail->SMTPAuth = true;
 $mail->Username = '{{encodedUser}}';
 $mail->Password = '{{encodedPass}}';
 $mail->SMTPSecure = 'tls';
-$mail->Port = 587;</pre>
+$mail->Port = {{smtp.port}};</pre>
     </div>
 </div>
 
 <h4>SwiftMailer configuration</h4>
 <div class="row">
     <div class="col-12">
-        <pre>$transport = (new Swift_SmtpTransport('smtp.ethereal.email', 587, 'tls'))
+        <pre>$transport = (new Swift_SmtpTransport('{{smtp.host}}', {{smtp.port}}, 'tls'))
   ->setUsername('{{encodedUser}}')
   ->setPassword('{{encodedPass}}');</pre>
     </div>
@@ -85,7 +85,7 @@ $mail->Port = 587;</pre>
                         Host
                     </th>
                     <td>
-                        <code>smtp.ethereal.email</code>
+                        <code>{{smtp.host}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -93,7 +93,7 @@ $mail->Port = 587;</pre>
                         Port
                     </th>
                     <td>
-                        <code>587</code>
+                        <code>{{smtp.port}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -136,7 +136,7 @@ $mail->Port = 587;</pre>
                         Host
                     </th>
                     <td>
-                        <code>imap.ethereal.email</code>
+                        <code>{{imap.host}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -144,7 +144,7 @@ $mail->Port = 587;</pre>
                         Port
                     </th>
                     <td>
-                        <code>993</code>
+                        <code>{{imap.port}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -187,7 +187,7 @@ $mail->Port = 587;</pre>
                         Host
                     </th>
                     <td>
-                        <code>pop3.ethereal.email</code>
+                        <code>{{pop3.host}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -195,7 +195,7 @@ $mail->Port = 587;</pre>
                         Port
                     </th>
                     <td>
-                        <code>995</code>
+                        <code>{{pop3.port}}</code>
                     </td>
                 </tr>
                 <tr>

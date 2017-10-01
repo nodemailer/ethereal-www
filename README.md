@@ -18,6 +18,10 @@ To run Ethereal you need to have the following components:
 2. [ethereal-msa](https://github.com/andris9/ethereal-msa) to accept mail
 3. [Wild Duck Mail Server](https://github.com/nodemailer/wildduck) to store user accounts and messages
 
+## Inbound email
+
+Wild Duck has a LMTP server running on port 24 (or if using default settings, on port 2424). You need to set up any LMTP capable MX server (eg Haraka or Postfix) in front of it to receive emails from the internets.
+
 ## Usage
 
 Once you have started Wild Duck Mail Server and ethereal-msa, install dependencies and start the app:

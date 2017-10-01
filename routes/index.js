@@ -59,7 +59,10 @@ router.get('/faq', (req, res) => {
 
 router.get('/help', (req, res) => {
     res.render('help', {
-        activeHelp: true
+        activeHelp: true,
+        smtp: config.smtp,
+        imap: config.imap,
+        pop3: config.pop3
     });
 });
 
@@ -663,7 +666,10 @@ router.post('/create', (req, res, next) => {
             id,
             user,
             encodedUser: user.address,
-            encodedPass: user.password.replace(/'/g, '\\\'')
+            encodedPass: user.password.replace(/'/g, '\\\''),
+            smtp: config.smtp,
+            imap: config.imap,
+            pop3: config.pop3
         });
     });
 });

@@ -15,7 +15,7 @@
                         Host
                     </th>
                     <td>
-                        <code>smtp.ethereal.email</code>
+                        <code>{{smtp.host}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -23,7 +23,7 @@
                         Port
                     </th>
                     <td>
-                        <code>587</code>
+                        <code>{{smtp.port}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -50,7 +50,7 @@
                         Host
                     </th>
                     <td>
-                        <code>imap.ethereal.email</code>
+                        <code>{{imap.host}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -58,7 +58,7 @@
                         Port
                     </th>
                     <td>
-                        <code>993</code>
+                        <code>{{imap.port}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -85,7 +85,7 @@
                         Host
                     </th>
                     <td>
-                        <code>pop3.ethereal.email</code>
+                        <code>{{pop3.host}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -93,7 +93,7 @@
                         Port
                     </th>
                     <td>
-                        <code>995</code>
+                        <code>{{pop3.port}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -116,16 +116,16 @@
     </p>
     <ul>
         <li>
-            Your username, eg. somethingsomething@ethereal.email
+            Your username, eg. somethingsomething@{{serviceDomain}}
         </li>
         <li>
-            Your username with dots in it, eg. some.thing.some.thing@ethereal.email
+            Your username with dots in it, eg. some.thing.some.thing@{{serviceDomain}}
         </li>
         <li>
-            Your username with a plus label, eg. somethingsomething+somelabel@ethereal.email
+            Your username with a plus label, eg. somethingsomething+somelabel@{{serviceDomain}}
         </li>
         <li>
-            Dots mixed with a plus label, eg. some.thing.somet.hing+somelabel@ethereal.email
+            Dots mixed with a plus label, eg. some.thing.somet.hing+somelabel@{{serviceDomain}}
         </li>
     </ul>
 </div>

@@ -3,8 +3,9 @@ name="Ethereal Email"
 title="ethereal-www"
 
 [service]
-# email domain for new users
-domain="ethereal.email"
+# domain name for the service
+domain="localtest.me"
+
 # default quotas for new users
 quota=1024
 recipients=2000
@@ -45,6 +46,7 @@ redis="redis://127.0.0.1:6379/3"
 # For now there's only a single option for attachment storage
 type="gridstore"
 bucket="attachments"
+decodeBase64=true
 
 [www]
 host="127.0.0.1"
@@ -54,6 +56,21 @@ postsize="5MB"
 log="dev"
 secret="a cat"
 baseurl="https://ethereal.email" # link used in emails etc
+
+[smtp]
+# smtp settings displayed in help etc.
+host="localtest.me"
+port=5587
+
+[imap]
+# imap settings displayed in help etc.
+host="localtest.me"
+port=9993
+
+[pop3]
+# imap settings displayed in help etc.
+host="localtest.me"
+port=9995
 
 [log]
 level="silly"
