@@ -45,6 +45,6 @@
         "redis": "^2.8.0",
         "serve-favicon": "^2.4.5",
         "wild-config": "^1.3.5",
-        "wildduck": "^1.0.82"
+        "wildduck": "^1.0.83"
     }
 }
