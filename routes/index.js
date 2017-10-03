@@ -42,8 +42,8 @@ router.get('/', (req, res) => {
             results = results || [];
             res.render('index', {
                 activeHome: true,
-                accounts: humanize.numberFormat((Number(results[0]) || 0) + (Number(results[1]) || 0), 0, ',', ' '),
-                messages: humanize.numberFormat(Number(results[2]) || 0, 0, ',', ' '),
+                accounts: humanize.numberFormat((Number(results[0] && results[0][1]) || 0) + (Number(results[1] && results[1][1]) || 0), 0, ',', ' '),
+                messages: humanize.numberFormat(Number(results[2] && results[2][1]) || 0, 0, ',', ' '),
                 page: mdrender('index', { title: 'test' })
             });
         });
