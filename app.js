@@ -15,6 +15,7 @@ const compression = require('compression');
 const passport = require('./lib/passport');
 const routesIndex = require('./routes/index');
 const ObjectID = require('mongodb').ObjectID;
+const db = require('./lib/db');
 
 const app = express();
 
@@ -56,7 +57,7 @@ app.use(
     session({
         name: 'webmail',
         store: new RedisStore({
-            url: config.dbs.redis
+            client: db.redis.duplicate()
         }),
         secret: config.www.secret,
         saveUninitialized: false,
