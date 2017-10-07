@@ -32,7 +32,7 @@ All messages, both sent and received can be found from the _INBOX_ folder (unles
 
 #### 8\. How is this sustainable
 
-Ethereal Email service is funded by the ads displayed on [Nodemailer.com](https://nodemailer.com/about/). So don't forget to click on these banners!
+Ethereal Email service is funded by the ads displayed on [Nodemailer.com](https://nodemailer.com/about/).
 
 #### 9\. Must I use Nodemailer for Ethereal?
 
