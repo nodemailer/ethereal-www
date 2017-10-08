@@ -48,7 +48,7 @@
             }, {
                 axisX: {
                     type: Chartist.FixedScaleAxis,
-                    divisor: 10,
+                    divisor: Math.max({{{statSeries}}}.length, 1),
                     labelInterpolationFnc: function(value) {
                         return moment(value).format('MMM D');
                     }
