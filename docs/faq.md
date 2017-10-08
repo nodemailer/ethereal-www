@@ -1,4 +1,4 @@
-> Ethereal is a free e-mail catching service, mostly aimed at (but not limited to) [Nodemailer](https://nodemailer.com/about/) users. Configure Ethereal as your outbound SMTP service and start sending mail. Nothing is actually delivered, all emails are catched and stored for review. What makee Ethereal stand out is the IMAP support and the freedom to create as many accounts as you wish, even programmatically.
+> Ethereal is a free e-mail catching service, mostly aimed at (but not limited to) [Nodemailer](https://nodemailer.com/about/) users. Configure Ethereal as your outbound SMTP service and start sending mail. Nothing is actually delivered, all emails are caught and stored for review. What makee Ethereal stand out is the IMAP support and the freedom to create as many accounts as you wish, even programmatically.
 
 #### 1\. Why would someone want to use Ethereal?
 
@@ -40,6 +40,6 @@ No, you can use any mail client or library that supports SMTP, be it PHPMailer o
 
 #### 10\. Is there an example?
 
-Yes, below is a screenshot of an email catched by Ethereal
+Yes, below is a screenshot of an email caught by Ethereal
 
 ![](https://cldup.com/D5Cj_C1Vw3.png)
