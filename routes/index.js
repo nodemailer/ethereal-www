@@ -46,7 +46,7 @@ router.get('/', (req, res) => {
             let statSeries = Object.keys(stats || {})
                 .map(key => ({ x: key, y: Number(stats[key]) }))
                 .sort((a, b) => a.x.localeCompare(b.x))
-                .slice(-100);
+                .slice(-15);
 
             res.render('index', {
                 activeHome: true,
