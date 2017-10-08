@@ -1,7 +1,7 @@
 <h1>New account</h1>
 
 <p>
-    Here you can find all the details needed to access your new test account. Remember that if sending messages through SMTP then no message is actually delivered, all messages are catched and you can see these in the Messages page or by using your favorite
+    Here you can find all the details needed to access your new test account. Remember that if sending messages through SMTP then no message is actually delivered, all messages are catched and you can see these in the <a href="/messages/" target="_blank">Messages</a> page or by using your favorite
     IMAP/POP3 client.
 </p>
 
@@ -20,7 +20,10 @@
                         Username
                     </th>
                     <td>
-                        <code>{{user.address}}</code> (also works as a real inbound email address)
+                        <code>{{userData.address}}</code> (also works as a real inbound email address)
+                    </td>
+                    <td class="text-right">
+                        <a href="data:text/csv;charset=utf-8;base64,{{{csvData}}}" download="credentials.csv" target="_plain" class="btn btn-info btn-sm"><span class="oi oi-cloud-download"></span> Download as CSV</a>
                     </td>
                 </tr>
                 <tr>
@@ -28,7 +31,10 @@
                         Password
                     </th>
                     <td>
-                        <code>{{user.password}}</code>
+                        <code>{{userData.password}}</code>
+                    </td>
+                    <td>
+                        
                     </td>
                 </tr>
             </tbody>
@@ -36,7 +42,7 @@
     </div>
 </div>
 
-<h4>Nodemailer configuration</h4>
+<h4 style="margin-top: 30px;">Nodemailer configuration</h4>
 
 <div class="row">
     <div class="col-12">
@@ -109,7 +115,7 @@ $mail->Port = {{smtp.port}};</pre>
                         Username
                     </th>
                     <td>
-                        <code>{{user.address}}</code>
+                        <code>{{userData.address}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -117,7 +123,7 @@ $mail->Port = {{smtp.port}};</pre>
                         Password
                     </th>
                     <td>
-                        <code>{{user.password}}</code>
+                        <code>{{userData.password}}</code>
                     </td>
                 </tr>
             </tbody>
@@ -160,7 +166,7 @@ $mail->Port = {{smtp.port}};</pre>
                         Username
                     </th>
                     <td>
-                        <code>{{user.address}}</code>
+                        <code>{{userData.address}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -168,7 +174,7 @@ $mail->Port = {{smtp.port}};</pre>
                         Password
                     </th>
                     <td>
-                        <code>{{user.password}}</code>
+                        <code>{{userData.password}}</code>
                     </td>
                 </tr>
             </tbody>
@@ -211,7 +217,7 @@ $mail->Port = {{smtp.port}};</pre>
                         Username
                     </th>
                     <td>
-                        <code>{{user.address}}</code>
+                        <code>{{userData.address}}</code>
                     </td>
                 </tr>
                 <tr>
@@ -219,7 +225,7 @@ $mail->Port = {{smtp.port}};</pre>
                         Password
                     </th>
                     <td>
-                        <code>{{user.password}}</code>
+                        <code>{{userData.password}}</code>
                     </td>
                 </tr>
             </tbody>

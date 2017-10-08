@@ -53,7 +53,8 @@ router.get('/', (req, res) => {
                 accounts: humanize.numberFormat((Number(results[0] && results[0][1]) || 0) + (Number(results[1] && results[1][1]) || 0), 0, ',', ' '),
                 messages: humanize.numberFormat(Number(results[2] && results[2][1]) || 0, 0, ',', ' '),
                 page: mdrender('index', { title: 'test' }),
-                statSeries: JSON.stringify(statSeries)
+                statSeries: JSON.stringify(statSeries),
+                csrfToken: req.csrfToken()
             });
         });
 });
@@ -658,7 +659,7 @@ router.get('/messages', checkLogin, (req, res, next) => {
 
 router.post('/create', (req, res, next) => {
     let username = getId();
-    let user = {
+    let userData = {
         username,
         password: generatePassword.generate({
             length: 18,
@@ -674,25 +675,36 @@ router.post('/create', (req, res, next) => {
         ip: req.ip
     };
 
-    db.userHandler.create(user, (err, id) => {
+    db.userHandler.create(userData, (err, id) => {
         if (err) {
             err.status = 500;
             return next(err);
         }
 
-        req.flash('success', 'Account created for ' + user.address);
+        req.flash('success', 'Account created for ' + userData.address);
 
         db.redis.incr('www:create', () => false);
+
+        let escapeCsv = value => JSON.stringify(value);
+        let csv = [
+            ['Service', 'Username', 'Password', 'Hostname', 'Port', 'Security'],
+            ['SMTP', userData.address, userData.password, config.smtp.host, config.smtp.host, 'STARTTLS'],
+            ['IMAP', userData.address, userData.password, config.smtp.host, config.smtp.host, 'TLS'],
+            ['POP3', userData.address, userData.password, config.smtp.host, config.smtp.host, 'TLS']
+        ]
+            .map(line => line.map(value => escapeCsv(value)).join(','))
+            .join('\n');
 
         res.render('create', {
             activeCreate: true,
             id,
-            user,
-            encodedUser: user.address,
-            encodedPass: user.password.replace(/'/g, '\\\''),
+            userData,
+            encodedUser: userData.address,
+            encodedPass: userData.password.replace(/'/g, '\\\''),
             smtp: config.smtp,
             imap: config.imap,
-            pop3: config.pop3
+            pop3: config.pop3,
+            csvData: Buffer.from(csv).toString('base64')
         });
     });
 });
