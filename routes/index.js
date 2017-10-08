@@ -35,16 +35,25 @@ router.get('/', (req, res) => {
         .get('api:create')
         .get('www:create')
         .get('msa:count:accept')
+        .hgetall('msa:count:accept:daily')
         .exec((err, results) => {
             if (err) {
                 // ignore
             }
             results = results || [];
+
+            let stats = (results[3] && results[3][1]) || {};
+            let statSeries = Object.keys(stats || {})
+                .map(key => ({ x: key, y: Number(stats[key]) }))
+                .sort((a, b) => a.x.localeCompare(b.x))
+                .slice(-100);
+
             res.render('index', {
                 activeHome: true,
                 accounts: humanize.numberFormat((Number(results[0] && results[0][1]) || 0) + (Number(results[1] && results[1][1]) || 0), 0, ',', ' '),
                 messages: humanize.numberFormat(Number(results[2] && results[2][1]) || 0, 0, ',', ' '),
-                page: mdrender('index', { title: 'test' })
+                page: mdrender('index', { title: 'test' }),
+                statSeries: JSON.stringify(statSeries)
             });
         });
 });
@@ -119,12 +128,14 @@ router.get('/messages/:mailbox/:message/source', checkLogin, (req, res, next) =>
 
     db.database.collection('mailboxes').findOne({
         _id: new ObjectID(result.value.mailbox)
-    }, {
+    },
+    {
         fields: {
             _id: true,
             user: true
         }
-    }, (err, mailboxData) => {
+    },
+    (err, mailboxData) => {
         if (err) {
             err.message = 'MongoDB Error: ' + err.message;
             err.status = 500;
@@ -176,12 +187,14 @@ router.get('/messages/:mailbox/:message/message.eml', checkLogin, (req, res, nex
 
     db.database.collection('mailboxes').findOne({
         _id: new ObjectID(result.value.mailbox)
-    }, {
+    },
+    {
         fields: {
             _id: true,
             user: true
         }
-    }, (err, mailboxData) => {
+    },
+    (err, mailboxData) => {
         if (err) {
             err.message = 'MongoDB Error: ' + err.message;
             err.status = 500;
@@ -205,13 +218,15 @@ router.get('/messages/:mailbox/:message/message.eml', checkLogin, (req, res, nex
         db.database.collection('messages').findOne({
             mailbox,
             uid
-        }, {
+        },
+        {
             fields: {
                 _id: true,
                 user: true,
                 mimeTree: true
             }
-        }, (err, messageData) => {
+        },
+        (err, messageData) => {
             if (err) {
                 return next(err);
             }
@@ -257,13 +272,15 @@ router.get('/message/:id/message.eml', (req, res, next) => {
         _id: message,
         mailbox,
         uid
-    }, {
+    },
+    {
         fields: {
             _id: true,
             user: true,
             mimeTree: true
         }
-    }, (err, messageData) => {
+    },
+    (err, messageData) => {
         if (err) {
             return next(err);
         }
@@ -333,12 +350,14 @@ router.get('/messages/:mailbox/:message', checkLogin, (req, res, next) => {
 
     db.database.collection('mailboxes').findOne({
         _id: new ObjectID(result.value.mailbox)
-    }, {
+    },
+    {
         fields: {
             _id: true,
             user: true
         }
-    }, (err, mailboxData) => {
+    },
+    (err, mailboxData) => {
         if (err) {
             err.message = 'MongoDB Error: ' + err.message;
             err.status = 500;
@@ -403,12 +422,14 @@ router.get('/messages/:mailbox/:message/attachment/:aid', checkLogin, (req, res,
 
     db.database.collection('mailboxes').findOne({
         _id: new ObjectID(result.value.mailbox)
-    }, {
+    },
+    {
         fields: {
             _id: true,
             user: true
         }
-    }, (err, mailboxData) => {
+    },
+    (err, mailboxData) => {
         if (err) {
             err.message = 'MongoDB Error: ' + err.message;
             err.status = 500;
@@ -479,14 +500,16 @@ router.get('/messages', checkLogin, (req, res, next) => {
     db.database.collection('mailboxes').findOne({
         user,
         path: 'INBOX'
-    }, {
+    },
+    {
         fields: {
             _id: true,
             path: true,
             specialUse: true,
             uidNext: true
         }
-    }, (err, mailboxData) => {
+    },
+    (err, mailboxData) => {
         if (err) {
             err.message = 'MongoDB Error: ' + err.message;
             err.status = 500;
@@ -684,188 +707,190 @@ function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
     query.mailbox = mailbox;
     query.uid = uid;
 
-    db.database.collection('messages').findOne(query, {
-        fields: {
-            _id: true,
-            uid: true,
-            user: true,
-            mailbox: true,
-            thread: true,
-            meta: true,
-            hdate: true,
-            'mimeTree.parsedHeader': true,
-            msgid: true,
-            exp: true,
-            rdate: true,
-            ha: true,
-            unseen: true,
-            undeleted: true,
-            flagged: true,
-            draft: true,
-            attachments: true,
-            html: true
-        }
-    }, (err, messageData) => {
-        if (err) {
-            err.message = 'Database error.' + err.message;
-            err.status = 500;
-            return callback(err);
-        }
+    db.database.collection('messages').findOne(query,
+        {
+            fields: {
+                _id: true,
+                uid: true,
+                user: true,
+                mailbox: true,
+                thread: true,
+                meta: true,
+                hdate: true,
+                'mimeTree.parsedHeader': true,
+                msgid: true,
+                exp: true,
+                rdate: true,
+                ha: true,
+                unseen: true,
+                undeleted: true,
+                flagged: true,
+                draft: true,
+                attachments: true,
+                html: true
+            }
+        },
+        (err, messageData) => {
+            if (err) {
+                err.message = 'Database error.' + err.message;
+                err.status = 500;
+                return callback(err);
+            }
 
-        if (!messageData) {
-            let err = new Error('This message does not exist');
-            err.status = 404;
-            return callback(err);
-        }
+            if (!messageData) {
+                let err = new Error('This message does not exist');
+                err.status = 404;
+                return callback(err);
+            }
 
-        let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
-        let messageUrl = usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
-        let attachmentUrl = usePrivateUrl ? '/messages/' + mailbox + '/' + uid + '/attachment' : '/attachment/' + publicId;
+            let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
+            let messageUrl = usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
+            let attachmentUrl = usePrivateUrl ? '/messages/' + mailbox + '/' + uid + '/attachment' : '/attachment/' + publicId;
 
-        let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
+            let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
 
-        let subject = parsedHeader.subject;
-        try {
-            subject = libmime.decodeWords(subject);
-        } catch (E) {
+            let subject = parsedHeader.subject;
+            try {
+                subject = libmime.decodeWords(subject);
+            } catch (E) {
             //
-        }
-
-        let from = parsedHeader.from;
-        if (from) {
-            tools.decodeAddresses(from);
-        }
-
-        let sender = parsedHeader.sender;
-        if (sender) {
-            tools.decodeAddresses(sender);
-        }
-
-        let smtpFrom = messageData.meta.from;
-        if (smtpFrom) {
-            smtpFrom = addressparser(smtpFrom);
-            tools.decodeAddresses(smtpFrom);
-        }
-
-        let smtpTo = messageData.meta.to;
-        if (smtpTo) {
-            smtpTo = addressparser(smtpTo);
-            tools.decodeAddresses(smtpTo);
-        }
-
-        let replyTo = parsedHeader['reply-to'];
-        if (replyTo) {
-            tools.decodeAddresses(replyTo);
-        }
-
-        let to = parsedHeader.to;
-        if (to) {
-            tools.decodeAddresses(to);
-        }
-
-        let cc = parsedHeader.cc;
-        if (cc) {
-            tools.decodeAddresses(cc);
-        }
-
-        let list;
-        if (parsedHeader['list-id'] || parsedHeader['list-unsubscribe']) {
-            let listId = parsedHeader['list-id'];
-            if (listId) {
-                listId = addressparser(listId.toString());
-                tools.decodeAddresses(listId);
-                listId = listId.shift();
             }
 
-            let listUnsubscribe = parsedHeader['list-unsubscribe'];
-            if (listUnsubscribe) {
-                listUnsubscribe = addressparser(listUnsubscribe.toString());
-                tools.decodeAddresses(listUnsubscribe);
+            let from = parsedHeader.from;
+            if (from) {
+                tools.decodeAddresses(from);
             }
 
-            list = {
-                id: listId,
-                unsubscribe: listUnsubscribe
-            };
-        }
-
-        let expires;
-        if (messageData.exp) {
-            expires = new Date(messageData.rdate).toISOString();
-        }
-
-        messageData.html = (messageData.html || []).map(html =>
-            html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => attachmentUrl + '/' + aid)
-        );
-
-        let ensureSeen = done => {
-            if (!messageData.unseen) {
-                return done();
+            let sender = parsedHeader.sender;
+            if (sender) {
+                tools.decodeAddresses(sender);
             }
-            // we need to mark this message as seen
-            return db.messageHandler.update(messageData.user, mailbox, messageData.uid, { seen: true }, err => {
-                if (err) {
-                    // ignore
-                } else {
-                    messageData.unseen = false;
+
+            let smtpFrom = messageData.meta.from;
+            if (smtpFrom) {
+                smtpFrom = addressparser(smtpFrom);
+                tools.decodeAddresses(smtpFrom);
+            }
+
+            let smtpTo = messageData.meta.to;
+            if (smtpTo) {
+                smtpTo = addressparser(smtpTo);
+                tools.decodeAddresses(smtpTo);
+            }
+
+            let replyTo = parsedHeader['reply-to'];
+            if (replyTo) {
+                tools.decodeAddresses(replyTo);
+            }
+
+            let to = parsedHeader.to;
+            if (to) {
+                tools.decodeAddresses(to);
+            }
+
+            let cc = parsedHeader.cc;
+            if (cc) {
+                tools.decodeAddresses(cc);
+            }
+
+            let list;
+            if (parsedHeader['list-id'] || parsedHeader['list-unsubscribe']) {
+                let listId = parsedHeader['list-id'];
+                if (listId) {
+                    listId = addressparser(listId.toString());
+                    tools.decodeAddresses(listId);
+                    listId = listId.shift();
                 }
 
-                done();
-            });
-        };
+                let listUnsubscribe = parsedHeader['list-unsubscribe'];
+                if (listUnsubscribe) {
+                    listUnsubscribe = addressparser(listUnsubscribe.toString());
+                    tools.decodeAddresses(listUnsubscribe);
+                }
 
-        ensureSeen(() => {
-            let response = {
-                success: true,
-                id: message,
-                messageUrl,
-                attachmentUrl,
-                uid: messageData.uid,
-                mailbox: messageData.mailbox,
-                user: messageData.user,
-                from,
-                sender,
-                smtpFrom,
-                smtpTo,
-                meta: messageData.meta,
-                replyTo,
-                to,
-                cc,
-                publicId,
-                subject,
-                messageId: messageData.msgid,
-                date: messageData.hdate.toISOString(),
-                inReplyTo: parsedHeader['in-reply-to'],
-                list,
-                expires,
-                seen: !messageData.unseen,
-                deleted: !messageData.undeleted,
-                flagged: messageData.flagged,
-                draft: messageData.draft,
-                html: messageData.html,
-                attachments: (messageData.attachments || []).map(attachment => {
-                    attachment.url = attachmentUrl + '/' + attachment.id;
-                    return attachment;
-                })
-            };
-
-            let parsedContentType = parsedHeader['content-type'];
-            if (parsedContentType) {
-                response.contentType = {
-                    value: parsedContentType.value
+                list = {
+                    id: listId,
+                    unsubscribe: listUnsubscribe
                 };
-                if (parsedContentType.hasParams) {
-                    response.contentType.params = parsedContentType.params;
-                }
-
-                if (parsedContentType.subtype === 'encrypted') {
-                    response.encrypted = true;
-                }
             }
 
-            return callback(null, response);
+            let expires;
+            if (messageData.exp) {
+                expires = new Date(messageData.rdate).toISOString();
+            }
+
+            messageData.html = (messageData.html || []).map(html =>
+                html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => attachmentUrl + '/' + aid)
+            );
+
+            let ensureSeen = done => {
+                if (!messageData.unseen) {
+                    return done();
+                }
+                // we need to mark this message as seen
+                return db.messageHandler.update(messageData.user, mailbox, messageData.uid, { seen: true }, err => {
+                    if (err) {
+                    // ignore
+                    } else {
+                        messageData.unseen = false;
+                    }
+
+                    done();
+                });
+            };
+
+            ensureSeen(() => {
+                let response = {
+                    success: true,
+                    id: message,
+                    messageUrl,
+                    attachmentUrl,
+                    uid: messageData.uid,
+                    mailbox: messageData.mailbox,
+                    user: messageData.user,
+                    from,
+                    sender,
+                    smtpFrom,
+                    smtpTo,
+                    meta: messageData.meta,
+                    replyTo,
+                    to,
+                    cc,
+                    publicId,
+                    subject,
+                    messageId: messageData.msgid,
+                    date: messageData.hdate.toISOString(),
+                    inReplyTo: parsedHeader['in-reply-to'],
+                    list,
+                    expires,
+                    seen: !messageData.unseen,
+                    deleted: !messageData.undeleted,
+                    flagged: messageData.flagged,
+                    draft: messageData.draft,
+                    html: messageData.html,
+                    attachments: (messageData.attachments || []).map(attachment => {
+                        attachment.url = attachmentUrl + '/' + attachment.id;
+                        return attachment;
+                    })
+                };
+
+                let parsedContentType = parsedHeader['content-type'];
+                if (parsedContentType) {
+                    response.contentType = {
+                        value: parsedContentType.value
+                    };
+                    if (parsedContentType.hasParams) {
+                        response.contentType.params = parsedContentType.params;
+                    }
+
+                    if (parsedContentType.subtype === 'encrypted') {
+                        response.encrypted = true;
+                    }
+                }
+
+                return callback(null, response);
+            });
         });
-    });
 }
 
 function renderMessage(req, res, next, data) {
@@ -1071,90 +1096,92 @@ function renderSource(req, res, next, data) {
     query.mailbox = mailbox;
     query.uid = uid;
 
-    db.database.collection('messages').findOne(query, {
-        fields: {
-            _id: true,
-            user: true,
-            mailbox: true,
-            uid: true,
-            mimeTree: true
-        }
-    }, (err, messageData) => {
-        if (err) {
-            return next(err);
-        }
+    db.database.collection('messages').findOne(query,
+        {
+            fields: {
+                _id: true,
+                user: true,
+                mailbox: true,
+                uid: true,
+                mimeTree: true
+            }
+        },
+        (err, messageData) => {
+            if (err) {
+                return next(err);
+            }
 
-        if (!messageData) {
-            let err = new Error('This message does not exist');
-            err.status = 404;
-            return next(err);
-        }
+            if (!messageData) {
+                let err = new Error('This message does not exist');
+                err.status = 404;
+                return next(err);
+            }
 
-        let warnPublic = data.warnPublic;
+            let warnPublic = data.warnPublic;
 
-        let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
-        let messageUrl = data.usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
+            let publicId = etherealId.get(messageData.mailbox.toString(), messageData._id.toString(), messageData.uid);
+            let messageUrl = data.usePrivateUrl ? '/messages/' + mailbox + '/' + uid : '/message/' + publicId;
 
-        let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
+            let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
 
-        let subject = parsedHeader.subject;
-        try {
-            subject = libmime.decodeWords(subject);
-        } catch (E) {
+            let subject = parsedHeader.subject;
+            try {
+                subject = libmime.decodeWords(subject);
+            } catch (E) {
             //
-        }
+            }
 
-        let raw = db.messageHandler.indexer.rebuild(messageData.mimeTree);
-        if (!raw || raw.type !== 'stream' || !raw.value) {
-            let err = new Error('This message does not exist');
-            err.status = 404;
-            return next(err);
-        }
+            let raw = db.messageHandler.indexer.rebuild(messageData.mimeTree);
+            if (!raw || raw.type !== 'stream' || !raw.value) {
+                let err = new Error('This message does not exist');
+                err.status = 404;
+                return next(err);
+            }
 
-        let chunks = [];
-        let chunklen = 0;
-        let ignore = false;
-        let ignoreBytes = 0;
+            let chunks = [];
+            let chunklen = 0;
+            let ignore = false;
+            let ignoreBytes = 0;
 
-        raw.value.on('readable', () => {
-            let chunk;
-            while ((chunk = raw.value.read()) !== null) {
-                if (!ignore) {
+            raw.value.on('readable', () => {
+                let chunk;
+                while ((chunk = raw.value.read()) !== null) {
+                    if (!ignore) {
+                        chunks.push(chunk);
+                        chunklen += chunk.length;
+                        if (chunklen > 728 * 1024) {
+                            ignore = true;
+                        }
+                    } else {
+                        ignoreBytes += chunk.length;
+                    }
+                }
+            });
+
+            raw.value.once('error', err => {
+                err.message = 'Database error. ' + err.message;
+                err.status = 500;
+                return next(err);
+            });
+
+            raw.value.once('end', () => {
+                if (ignoreBytes) {
+                    let chunk = Buffer.from('\n<+ ' + humanize.filesize(ignoreBytes) + ' ...>');
                     chunks.push(chunk);
                     chunklen += chunk.length;
-                    if (chunklen > 728 * 1024) {
-                        ignore = true;
-                    }
-                } else {
-                    ignoreBytes += chunk.length;
                 }
-            }
-        });
 
-        raw.value.once('error', err => {
-            err.message = 'Database error. ' + err.message;
-            err.status = 500;
-            return next(err);
-        });
+                let source = '<span>' + he.encode(Buffer.concat(chunks, chunklen).toString()).replace(/\r?\n/g, '</span>\n<span>') + '</span>';
 
-        raw.value.once('end', () => {
-            if (ignoreBytes) {
-                let chunk = Buffer.from('\n<+ ' + humanize.filesize(ignoreBytes) + ' ...>');
-                chunks.push(chunk);
-                chunklen += chunk.length;
-            }
-
-            let source = '<span>' + he.encode(Buffer.concat(chunks, chunklen).toString()).replace(/\r?\n/g, '</span>\n<span>') + '</span>';
-
-            res.render('source', {
-                messageUrl,
-                warnPublic,
-                subject,
-                source,
-                activeMessages: data.usePrivateUrl
+                res.render('source', {
+                    messageUrl,
+                    warnPublic,
+                    subject,
+                    source,
+                    activeMessages: data.usePrivateUrl
+                });
             });
         });
-    });
 }
 
 function renderAttachment(req, res, next, data) {
@@ -1170,56 +1197,58 @@ function renderAttachment(req, res, next, data) {
     query.mailbox = mailbox;
     query.uid = uid;
 
-    db.database.collection('messages').findOne(query, {
-        fields: {
-            _id: true,
-            user: true,
-            attachments: true,
-            'mimeTree.attachmentMap': true
-        }
-    }, (err, messageData) => {
-        if (err) {
-            err.message = 'Database error.' + err.message;
-            err.status = 500;
-            return next(err);
-        }
-        if (!messageData) {
-            let err = new Error('This message does not exist');
-            err.status = 404;
-            return next(err);
-        }
-
-        let attachmentId = messageData.mimeTree.attachmentMap && messageData.mimeTree.attachmentMap[aid];
-        if (!attachmentId) {
-            let err = new Error('This attachment does not exist');
-            err.status = 404;
-            return next(err);
-        }
-
-        db.messageHandler.attachmentStorage.get(attachmentId, (err, attachmentData) => {
+    db.database.collection('messages').findOne(query,
+        {
+            fields: {
+                _id: true,
+                user: true,
+                attachments: true,
+                'mimeTree.attachmentMap': true
+            }
+        },
+        (err, messageData) => {
             if (err) {
                 err.message = 'Database error.' + err.message;
                 err.status = 500;
                 return next(err);
             }
-
-            res.writeHead(200, {
-                'Content-Type': attachmentData.contentType || 'application/octet-stream'
-            });
-
-            let attachmentStream = db.messageHandler.attachmentStorage.createReadStream(attachmentId, attachmentData);
-
-            attachmentStream.once('error', err => res.emit('error', err));
-
-            if (attachmentData.transferEncoding === 'base64') {
-                attachmentStream.pipe(new libbase64.Decoder()).pipe(res);
-            } else if (attachmentData.transferEncoding === 'quoted-printable') {
-                attachmentStream.pipe(new libqp.Decoder()).pipe(res);
-            } else {
-                attachmentStream.pipe(res);
+            if (!messageData) {
+                let err = new Error('This message does not exist');
+                err.status = 404;
+                return next(err);
             }
+
+            let attachmentId = messageData.mimeTree.attachmentMap && messageData.mimeTree.attachmentMap[aid];
+            if (!attachmentId) {
+                let err = new Error('This attachment does not exist');
+                err.status = 404;
+                return next(err);
+            }
+
+            db.messageHandler.attachmentStorage.get(attachmentId, (err, attachmentData) => {
+                if (err) {
+                    err.message = 'Database error.' + err.message;
+                    err.status = 500;
+                    return next(err);
+                }
+
+                res.writeHead(200, {
+                    'Content-Type': attachmentData.contentType || 'application/octet-stream'
+                });
+
+                let attachmentStream = db.messageHandler.attachmentStorage.createReadStream(attachmentId, attachmentData);
+
+                attachmentStream.once('error', err => res.emit('error', err));
+
+                if (attachmentData.transferEncoding === 'base64') {
+                    attachmentStream.pipe(new libbase64.Decoder()).pipe(res);
+                } else if (attachmentData.transferEncoding === 'quoted-printable') {
+                    attachmentStream.pipe(new libqp.Decoder()).pipe(res);
+                } else {
+                    attachmentStream.pipe(res);
+                }
+            });
         });
-    });
 }
 
 function getId() {

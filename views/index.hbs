@@ -36,3 +36,36 @@
         <script src="https://gist.github.com/andris9/884a78c810ff2644e479425eabd1f142.js"></script>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-12">
+        <h5>Messages caugth in last days</h5>
+        <div class="messages-caught ct-double-octave"></div>
+        <script>
+        
+        document.addEventListener('DOMContentLoaded', function(){
+            new Chartist.Line('.messages-caught', {
+                series: [
+                    {
+                        name: 'Messages caught',
+                        data: {{{statSeries}}}.map(function(entry){return {x: new Date(entry.x), y: entry.y};})
+                    }
+                ]
+            }, {
+                fullWidth: true,
+                chartPadding: {
+                    right: 40
+                },
+                axisX: {
+                    type: Chartist.FixedScaleAxis,
+                    //divisor: 5,
+                    labelInterpolationFnc: function(value) {
+                        return moment(value).format('MMM D');
+                    }
+                }
+            });
+        });
+        
+        </script>
+    </div>
+</div>
