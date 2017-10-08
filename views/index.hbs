@@ -52,13 +52,9 @@
                     }
                 ]
             }, {
-                fullWidth: true,
-                chartPadding: {
-                    right: 40
-                },
                 axisX: {
                     type: Chartist.FixedScaleAxis,
-                    //divisor: 5,
+                    divisor: 10,
                     labelInterpolationFnc: function(value) {
                         return moment(value).format('MMM D');
                     }
