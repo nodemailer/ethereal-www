@@ -33,7 +33,7 @@ if (config.www.proxy) {
 }
 
 app.use((req, res, next) => {
-    res.set('x-server-by', hostname);
+    res.set('X-Served-By', hostname);
     next();
 });
 
