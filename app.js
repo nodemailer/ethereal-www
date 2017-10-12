@@ -16,6 +16,7 @@ const passport = require('./lib/passport');
 const routesIndex = require('./routes/index');
 const ObjectID = require('mongodb').ObjectID;
 const db = require('./lib/db');
+const hostname = require('os').hostname();
 
 const app = express();
 
@@ -30,6 +31,11 @@ app.set('view engine', 'hbs');
 if (config.www.proxy) {
     app.set('trust proxy', config.www.proxy);
 }
+
+app.use((req, res, next) => {
+    res.set('x-server-by', hostname);
+    next();
+});
 
 // Do not expose software used
 app.disable('x-powered-by');
