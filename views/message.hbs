@@ -20,10 +20,17 @@
 
     <div class="tab-pane{{#if activeHeader}} show active{{/if}}" id="message-header" role="tabpanel" aria-labelledby="message-header-tab">
         {{#if activeMessages}}
-
+        <div>
             <a class="btn btn-link btn-sm" href="/message/{{message.publicId}}" role="button"><span class="oi oi-link-intact" title="Public URL" aria-hidden="true"></span> Public URL of this message</a>
-
+            </div>
         {{/if}}
+
+        {{#if message.flagged}}
+            <div class="float-left text-warning">
+                <span class="oi oi-star" title="Message is flagged"></span>&nbsp;
+            </div>
+        {{/if}}
+
         {{#each info}}
             <div>
                 <strong>{{key}}:</strong>
@@ -32,6 +39,12 @@
                 </span>
             </div>
         {{/each}}
+
+        {{#if message.deleted}}
+            <div>
+                <span class="text-danger">IMAP client has marked this message to be deleted</span>
+            </div>
+        {{/if}}
     </div>
     <div class="tab-pane{{#if activeEnvelope}} show active{{/if}}" id="message-envelope" role="tabpanel" aria-labelledby="message-envelope-tab">
         {{#each envelope}}
