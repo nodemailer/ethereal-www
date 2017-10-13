@@ -32,6 +32,12 @@
                 </span>
             </div>
         {{/each}}
+
+        {{#if message.deleted}}
+            <div>
+                <span class="text-muted text-danger">message has been marked to be deleted by IMAP client</span>
+            </div>
+        {{/if}}
     </div>
     <div class="tab-pane{{#if activeEnvelope}} show active{{/if}}" id="message-envelope" role="tabpanel" aria-labelledby="message-envelope-tab">
         {{#each envelope}}

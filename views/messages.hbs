@@ -44,7 +44,7 @@
         <table class="table table-responsive table-striped table-bordered table-hover table-sm">
             <tbody>
                 {{#each results}}
-                    <tr style="{{#unless seen}}font-weight: bold;{{/unless}}">
+                    <tr style="{{#unless seen}}font-weight: bold;{{/unless}}" class="{{#if deleted}}table-danger{{/if}}">
                         <td>
                             {{#if outbound}}
                                 To: {{{toHtml}}}
