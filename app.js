@@ -43,6 +43,8 @@ app.disable('x-powered-by');
 app.use(compression());
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
+logger.token('username', req => (req.user ? req.user.username : false));
+
 app.use(
     logger(config.www.log, {
         stream: {
