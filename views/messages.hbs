@@ -46,6 +46,9 @@
                 {{#each results}}
                     <tr style="{{#unless seen}}font-weight: bold;{{/unless}}" class="{{#if deleted}}table-danger{{/if}}">
                         <td>
+                            {{#if flagged}}
+                                <span class="oi oi-star text-warning" title="Message is flagged"></span>
+                            {{/if}}
                             {{#if outbound}}
                                 To: {{{toHtml}}}
                             {{else}}
