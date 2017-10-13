@@ -53,7 +53,7 @@ host="127.0.0.1"
 port=5999
 proxy=true
 postsize="5MB"
-log="dev"
+log=":remote-addr :username \":method :url HTTP/:http-version\" :status \":referrer\" \":user-agent\""
 secret="a cat"
 baseurl="https://ethereal.email" # link used in emails etc
 
