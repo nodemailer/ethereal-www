@@ -817,14 +817,9 @@ function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
             expires = new Date(messageData.rdate).toISOString();
         }
 
-        messageData.html = (messageData.html || []).map(html =>
-            html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => attachmentUrl + '/' + aid)
-        );
+        messageData.html = (messageData.html || []).map(html => html.replace(/attachment:(ATT\d+)/g, (str, aid) => attachmentUrl + '/' + aid));
 
-        messageData.text = ((messageData.text || '') + (messageData.textFooter || '')).replace(
-            /attachment:([a-f0-9]+)\/(ATT\d+)/g,
-            (str, mid, aid) => attachmentUrl + '/' + aid
-        );
+        messageData.text = ((messageData.text || '') + (messageData.textFooter || '')).replace(/attachment:(ATT\d+)/g, (str, aid) => attachmentUrl + '/' + aid);
 
         let ensureSeen = done => {
             if (!messageData.unseen) {
