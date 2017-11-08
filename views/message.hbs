@@ -45,19 +45,20 @@
                 <span class="text-danger">IMAP client has marked this message to be deleted</span>
             </div>
         {{/if}}
-    </div>
 
+        <div>
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input toggleview" type="radio" name="toggleview" id="showHtml" value="html" checked> HTML
+                </label>
+            </div>
 
-    <div class="form-check form-check-inline">
-        <label class="form-check-label">
-            <input class="form-check-input toggleview" type="radio" name="toggleview" id="showHtml" value="html" checked> HTML
-        </label>
-    </div>
-
-    <div class="form-check form-check-inline">
-        <label class="form-check-label">
-            <input class="form-check-input toggleview" type="radio" name="toggleview" id="showPlaintext" value="plaintext"> Plaintext
-        </label>
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input toggleview" type="radio" name="toggleview" id="showPlaintext" value="plaintext"> Plaintext
+                </label>
+            </div>
+        </div>
     </div>
 
     <div class="tab-pane{{#if activeEnvelope}} show active{{/if}}" id="message-envelope" role="tabpanel" aria-labelledby="message-envelope-tab">
@@ -121,7 +122,7 @@
             if(e.target.checked){
                 if(e.target.value === 'html'){
                     document.getElementById('message').style.display = 'block';
-                    document.getElementById('plaintext').style.display = 'none';
+                    document.getElementById('Gxt').style.display = 'none';
                 }else if(e.target.value === 'plaintext'){
                     document.getElementById('message').style.display = 'none';
                     document.getElementById('plaintext').style.display = 'block';
