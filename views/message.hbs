@@ -99,23 +99,26 @@
         var message = {{{messageJson}}};
 
         document.addEventListener("DOMContentLoaded", function(event) {
-            if (message.html) {
-                var clean = DOMPurify.sanitize(message.html.join('\n'), {
-                    ALLOW_UNKNOWN_PROTOCOLS: true,
-                    WHOLE_DOCUMENT: true,
-                    FORBID_TAGS: ['form']
-                });
+                if (message.html) {
+                    var clean = DOMPurify.sanitize(message.html.join('\n'), {
+                        ALLOW_UNKNOWN_PROTOCOLS: true,
+                        WHOLE_DOCUMENT: true,
+                        FORBID_TAGS: ['form']
+                    });
 
-                clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" /><base target="_parent">');
+                    clean = clean.replace(/head>/, 'head><link rel="stylesheet" href="/mail.css" /><base target="_parent"><script>function resizeIframe(obj) {obj.style.height = obj.contentWindow.document.body.scrollHeight + "px";</'+'script>');
 
-                var iframe = document.createElement('iframe');
+                    var iframe = document.createElement('iframe');
 
-                document.getElementById('message').appendChild(iframe);
-                iframe.contentWindow.document.open();
-                iframe.contentWindow.document.write(clean);
-                iframe.contentWindow.document.close();
-            }
-        }, false);
+                    document.getElementById('message').appendChild(iframe);
+                    iframe.contentWindow.document.open();
+                    iframe.contentWindow.document.write(clean);
+                    iframe.contentWindow.document.close();
+                    iframe.contentWindow.addEventListener('load', function(){
+                        iframe.contentWindow.resizeIframe(iframe);
+                    });
+                }
+            }, false);
 
         function updateView(e){
             if(e.target.checked){
