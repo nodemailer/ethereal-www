@@ -117,3 +117,9 @@ pre.numbered span:before {
     white-space: -o-pre-wrap; /* Opera 7 */
     word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
+
+.select-view {
+    background: #e7e8ea;
+    margin-top: 1rem;
+    padding: 5px 20px;
+}

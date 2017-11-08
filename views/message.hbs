@@ -73,25 +73,24 @@
 
 <div class="container includes-iframe">
     <!-- lower .container -->
-
-    <div class="alert alert-secondary" role="alert">
-        <div class="form-check form-check-inline">
-            <label class="form-check-label">
-                <input class="form-check-input toggleview" type="radio" name="toggleview" id="showHtml" value="html" checked> HTML
-            </label>
-        </div>
-
-        <div class="form-check form-check-inline">
-            <label class="form-check-label">
-                <input class="form-check-input toggleview" type="radio" name="toggleview" id="showPlaintext" value="plaintext"> Plaintext
-            </label>
-        </div>
-    </div>
-
     <div class="iframe-box">
-        <div id="message">
 
+        <div class="select-view">
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input toggleview" type="radio" name="toggleview" id="showHtml" value="html" checked> HTML
+                </label>
+            </div>
+
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input toggleview" type="radio" name="toggleview" id="showPlaintext" value="plaintext"> Plaintext
+                </label>
+            </div>
         </div>
+
+        <div id="message"></div>
+
         <div id="plaintext" class="message-plaintext" style="display: none">{{message.text}}</div>
     </div>
 
@@ -122,7 +121,7 @@
             if(e.target.checked){
                 if(e.target.value === 'html'){
                     document.getElementById('message').style.display = 'block';
-                    document.getElementById('Gxt').style.display = 'none';
+                    document.getElementById('plaintext').style.display = 'none';
                 }else if(e.target.value === 'plaintext'){
                     document.getElementById('message').style.display = 'none';
                     document.getElementById('plaintext').style.display = 'block';
