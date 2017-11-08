@@ -109,8 +109,10 @@ pre.numbered span:before {
 }
 
 .message-plaintext {
-    font-family: monospace;
-    padding: 8px;
+    font-family: sans-serif;
+    font-size: 13px;
+    color: #000;
+    margin: 8px;
     white-space: pre-wrap; /* css-3 */
     white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
     white-space: -pre-wrap; /* Opera 4-6 */
