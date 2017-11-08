@@ -45,20 +45,6 @@
                 <span class="text-danger">IMAP client has marked this message to be deleted</span>
             </div>
         {{/if}}
-
-        <div>
-            <div class="form-check form-check-inline">
-                <label class="form-check-label">
-                    <input class="form-check-input toggleview" type="radio" name="toggleview" id="showHtml" value="html" checked> HTML
-                </label>
-            </div>
-
-            <div class="form-check form-check-inline">
-                <label class="form-check-label">
-                    <input class="form-check-input toggleview" type="radio" name="toggleview" id="showPlaintext" value="plaintext"> Plaintext
-                </label>
-            </div>
-        </div>
     </div>
 
     <div class="tab-pane{{#if activeEnvelope}} show active{{/if}}" id="message-envelope" role="tabpanel" aria-labelledby="message-envelope-tab">
@@ -79,6 +65,20 @@
                 <span class="text-muted">message is deleted briefly after expiration time</span>
             </div>
         {{/if}}
+    </div>
+</div>
+
+<div class="alert alert-secondary" role="alert">
+    <div class="form-check form-check-inline">
+        <label class="form-check-label">
+            <input class="form-check-input toggleview" type="radio" name="toggleview" id="showHtml" value="html" checked> HTML
+        </label>
+    </div>
+
+    <div class="form-check form-check-inline">
+        <label class="form-check-label">
+            <input class="form-check-input toggleview" type="radio" name="toggleview" id="showPlaintext" value="plaintext"> Plaintext
+        </label>
     </div>
 </div>
 
