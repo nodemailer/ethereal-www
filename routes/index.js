@@ -724,7 +724,9 @@ function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
             flagged: true,
             draft: true,
             attachments: true,
-            html: true
+            html: true,
+            text: true,
+            textFooter: true
         }
     }, (err, messageData) => {
         if (err) {
@@ -819,6 +821,11 @@ function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
             html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => attachmentUrl + '/' + aid)
         );
 
+        messageData.text = ((messageData.text || '') + (messageData.textFooter || '')).replace(
+            /attachment:([a-f0-9]+)\/(ATT\d+)/g,
+            (str, mid, aid) => attachmentUrl + '/' + aid
+        );
+
         let ensureSeen = done => {
             if (!messageData.unseen) {
                 return done();
@@ -864,6 +871,7 @@ function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
                 flagged: messageData.flagged,
                 draft: messageData.draft,
                 html: messageData.html,
+                text: messageData.text,
                 attachments: (messageData.attachments || []).map(attachment => {
                     attachment.url = attachmentUrl + '/' + attachment.id;
                     return attachment;
@@ -1026,10 +1034,6 @@ function renderMessage(req, res, next, data) {
                 value: messageData.inReplyTo
             });
         }
-
-        messageData.html = (messageData.html || []).map(html =>
-            html.replace(/attachment:([a-f0-9]+)\/(ATT\d+)/g, (str, mid, aid) => messageData.attachmentUrl + '/' + aid)
-        );
 
         res.render('message', {
             id: req.params.id,
