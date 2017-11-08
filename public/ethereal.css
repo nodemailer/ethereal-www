@@ -30,7 +30,7 @@ h3 {
 
 .iframe-container .includes-iframe {
     flex: 1;
-    border: 1px solid rgba(86, 61, 124, .2);
+    border: 1px solid rgba(86, 61, 124, 0.2);
     margin-bottom: 1rem;
 }
 
@@ -80,8 +80,8 @@ pre.numbered span:before {
     content: counter(line);
     display: inline-block;
     border-right: 1px solid #ddd;
-    padding: 0 .5em;
-    margin-right: .5em;
+    padding: 0 0.5em;
+    margin-right: 0.5em;
     color: #888;
 }
 
@@ -106,4 +106,10 @@ pre.numbered span:before {
 .attachment-list a {
     display: block;
     margin: 0 0 3px 3px;
+}
+
+.message-plaintext {
+    font-family: monospace;
+    white-space: pre;
+    padding: 10px 5px;
 }

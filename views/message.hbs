@@ -46,6 +46,20 @@
             </div>
         {{/if}}
     </div>
+
+
+    <div class="form-check form-check-inline">
+        <label class="form-check-label">
+            <input class="form-check-input toggleview" type="radio" name="toggleview" id="showHtml" value="html" checked> HTML
+        </label>
+    </div>
+
+    <div class="form-check form-check-inline">
+        <label class="form-check-label">
+            <input class="form-check-input toggleview" type="radio" name="toggleview" id="showPlaintext" value="plaintext"> Plaintext
+        </label>
+    </div>
+
     <div class="tab-pane{{#if activeEnvelope}} show active{{/if}}" id="message-envelope" role="tabpanel" aria-labelledby="message-envelope-tab">
         {{#each envelope}}
             <div>
@@ -73,7 +87,12 @@
 <div class="container includes-iframe">
     <!-- lower .container -->
 
-    <div id="message" class="iframe-box"></div>
+    <div class="iframe-box">
+        <div id="message">
+
+        </div>
+        <div id="plaintext" class="message-plaintext" style="display: none">{{message.text}}</div>
+    </div>
 
     <script type="text/javascript" src="/purify-1.0.0/purify.min.js"></script>
     <script>
@@ -97,4 +116,21 @@
                 iframe.contentWindow.document.close();
             }
         }, false);
+
+        function updateView(e){
+            if(e.target.checked){
+                if(e.target.value === 'html'){
+                    document.getElementById('message').style.display = 'block';
+                    document.getElementById('plaintext').style.display = 'none';
+                }else if(e.target.value === 'plaintext'){
+                    document.getElementById('message').style.display = 'none';
+                    document.getElementById('plaintext').style.display = 'block';
+                }
+            }
+        }
+
+        document.querySelectorAll('.toggleview').forEach(function(element){
+            element.addEventListener('change', updateView);
+            element.addEventListener('click', updateView);
+        });
     </script>
