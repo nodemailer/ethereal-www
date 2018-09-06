@@ -132,7 +132,7 @@ router.get('/messages/:mailbox/:message/source', checkLogin, (req, res, next) =>
             _id: new ObjectID(result.value.mailbox)
         },
         {
-            fields: {
+            projection: {
                 _id: true,
                 user: true
             }
@@ -193,7 +193,7 @@ router.get('/messages/:mailbox/:message/message.eml', checkLogin, (req, res, nex
             _id: new ObjectID(result.value.mailbox)
         },
         {
-            fields: {
+            projection: {
                 _id: true,
                 user: true
             }
@@ -225,7 +225,7 @@ router.get('/messages/:mailbox/:message/message.eml', checkLogin, (req, res, nex
                     uid
                 },
                 {
-                    fields: {
+                    projection: {
                         _id: true,
                         user: true,
                         mimeTree: true
@@ -282,7 +282,7 @@ router.get('/message/:id/message.eml', (req, res, next) => {
             uid
         },
         {
-            fields: {
+            projection: {
                 _id: true,
                 user: true,
                 mimeTree: true
@@ -362,7 +362,7 @@ router.get('/messages/:mailbox/:message', checkLogin, (req, res, next) => {
             _id: new ObjectID(result.value.mailbox)
         },
         {
-            fields: {
+            projection: {
                 _id: true,
                 user: true
             }
@@ -436,7 +436,7 @@ router.get('/messages/:mailbox/:message/attachment/:aid', checkLogin, (req, res,
             _id: new ObjectID(result.value.mailbox)
         },
         {
-            fields: {
+            projection: {
                 _id: true,
                 user: true
             }
@@ -516,7 +516,7 @@ router.get('/messages', checkLogin, (req, res, next) => {
             path: 'INBOX'
         },
         {
-            fields: {
+            projection: {
                 _id: true,
                 path: true,
                 specialUse: true,
@@ -554,24 +554,27 @@ router.get('/messages', checkLogin, (req, res, next) => {
                     limit,
                     query: filter,
                     fields: {
-                        _id: true,
                         uid: true,
-                        'meta.from': true,
-                        hdate: true,
-                        flags: true,
-                        subject: true,
-                        'mimeTree.parsedHeader.from': true,
-                        'mimeTree.parsedHeader.to': true,
-                        'mimeTree.parsedHeader.cc': true,
-                        'mimeTree.parsedHeader.sender': true,
-                        'mimeTree.parsedHeader.content-type': true,
-                        ha: true,
-                        intro: true,
-                        unseen: true,
-                        undeleted: true,
-                        flagged: true,
-                        draft: true,
-                        thread: true
+                        projection: {
+                            _id: true,
+                            uid: true,
+                            'meta.from': true,
+                            hdate: true,
+                            flags: true,
+                            subject: true,
+                            'mimeTree.parsedHeader.from': true,
+                            'mimeTree.parsedHeader.to': true,
+                            'mimeTree.parsedHeader.cc': true,
+                            'mimeTree.parsedHeader.sender': true,
+                            'mimeTree.parsedHeader.content-type': true,
+                            ha: true,
+                            intro: true,
+                            unseen: true,
+                            undeleted: true,
+                            flagged: true,
+                            draft: true,
+                            thread: true
+                        }
                     },
                     paginatedField: 'uid',
                     sortAscending
@@ -583,89 +586,88 @@ router.get('/messages', checkLogin, (req, res, next) => {
                     opts.previous = pagePrevious;
                 }
 
-                MongoPaging.find(db.database.collection('messages'), opts, (err, result) => {
-                    if (err) {
-                        let err = new Error(result.error.message);
+                MongoPaging.find(db.database.collection('messages'), opts)
+                    .then(result => {
+                        if (!result.hasPrevious) {
+                            page = 1;
+                        }
+
+                        let prevUrl = result.hasPrevious
+                            ? renderRoute('messages', { previous: result.previous, limit, order: sortAscending ? 'asc' : 'desc', page: Math.max(page - 1, 1) })
+                            : false;
+                        let nextUrl = result.hasNext
+                            ? renderRoute('messages', { next: result.next, limit, order: sortAscending ? 'asc' : 'desc', page: page + 1 })
+                            : false;
+
+                        let response = {
+                            activeMessages: true,
+                            total,
+                            page,
+                            nextPage: page + 1,
+                            previousPage: Math.max(page - 1, 1),
+                            previous: prevUrl,
+                            previousCursor: result.hasPrevious ? result.previous : false,
+                            next: nextUrl,
+                            nextCursor: result.hasNext ? result.next : false,
+                            specialUse: mailboxData.specialUse,
+                            results: (result.results || []).map(messageData => {
+                                let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
+                                let from = parsedHeader.from ||
+                                    parsedHeader.sender || [
+                                        {
+                                            name: '',
+                                            address: (messageData.meta && messageData.meta.from) || ''
+                                        }
+                                    ];
+                                tools.decodeAddresses(from);
+
+                                let to = parsedHeader.to || parsedHeader.cc || [].concat(messageData.meta.to || []).map(to => ({ name: '', address: to }));
+                                tools.decodeAddresses(to);
+
+                                let response = {
+                                    id: messageData.uid,
+                                    publicId: etherealId.get(mailboxData._id.toString(), messageData._id.toString(), messageData.uid),
+                                    mailbox: mailboxData._id,
+                                    thread: messageData.thread,
+                                    from,
+                                    to,
+                                    subject: messageData.subject,
+                                    date: messageData.hdate.toISOString(),
+                                    intro: messageData.intro,
+                                    attachments: !!messageData.ha,
+                                    seen: !messageData.unseen,
+                                    deleted: !messageData.undeleted,
+                                    flagged: messageData.flagged,
+                                    draft: messageData.draft,
+                                    fromHtml: messageTools.getAddressesHTML(from),
+                                    toHtml: messageTools.getAddressesHTML(to),
+                                    flags: messageData.flags,
+                                    outbound: messageData.flags.includes('$msa$delivery')
+                                };
+                                let parsedContentType = parsedHeader['content-type'];
+                                if (parsedContentType) {
+                                    response.contentType = {
+                                        value: parsedContentType.value
+                                    };
+                                    if (parsedContentType.hasParams) {
+                                        response.contentType.params = parsedContentType.params;
+                                    }
+
+                                    if (parsedContentType.subtype === 'encrypted') {
+                                        response.encrypted = true;
+                                    }
+                                }
+
+                                return response;
+                            })
+                        };
+
+                        res.render('messages', response);
+                    })
+                    .catch(err => {
                         err.status = 500;
                         return next(err);
-                    }
-
-                    if (!result.hasPrevious) {
-                        page = 1;
-                    }
-
-                    let prevUrl = result.hasPrevious
-                        ? renderRoute('messages', { previous: result.previous, limit, order: sortAscending ? 'asc' : 'desc', page: Math.max(page - 1, 1) })
-                        : false;
-                    let nextUrl = result.hasNext
-                        ? renderRoute('messages', { next: result.next, limit, order: sortAscending ? 'asc' : 'desc', page: page + 1 })
-                        : false;
-
-                    let response = {
-                        activeMessages: true,
-                        total,
-                        page,
-                        nextPage: page + 1,
-                        previousPage: Math.max(page - 1, 1),
-                        previous: prevUrl,
-                        previousCursor: result.hasPrevious ? result.previous : false,
-                        next: nextUrl,
-                        nextCursor: result.hasNext ? result.next : false,
-                        specialUse: mailboxData.specialUse,
-                        results: (result.results || []).map(messageData => {
-                            let parsedHeader = (messageData.mimeTree && messageData.mimeTree.parsedHeader) || {};
-                            let from = parsedHeader.from ||
-                                parsedHeader.sender || [
-                                    {
-                                        name: '',
-                                        address: (messageData.meta && messageData.meta.from) || ''
-                                    }
-                                ];
-                            tools.decodeAddresses(from);
-
-                            let to = parsedHeader.to || parsedHeader.cc || [].concat(messageData.meta.to || []).map(to => ({ name: '', address: to }));
-                            tools.decodeAddresses(to);
-
-                            let response = {
-                                id: messageData.uid,
-                                publicId: etherealId.get(mailboxData._id.toString(), messageData._id.toString(), messageData.uid),
-                                mailbox: mailboxData._id,
-                                thread: messageData.thread,
-                                from,
-                                to,
-                                subject: messageData.subject,
-                                date: messageData.hdate.toISOString(),
-                                intro: messageData.intro,
-                                attachments: !!messageData.ha,
-                                seen: !messageData.unseen,
-                                deleted: !messageData.undeleted,
-                                flagged: messageData.flagged,
-                                draft: messageData.draft,
-                                fromHtml: messageTools.getAddressesHTML(from),
-                                toHtml: messageTools.getAddressesHTML(to),
-                                flags: messageData.flags,
-                                outbound: messageData.flags.includes('$msa$delivery')
-                            };
-                            let parsedContentType = parsedHeader['content-type'];
-                            if (parsedContentType) {
-                                response.contentType = {
-                                    value: parsedContentType.value
-                                };
-                                if (parsedContentType.hasParams) {
-                                    response.contentType.params = parsedContentType.params;
-                                }
-
-                                if (parsedContentType.subtype === 'encrypted') {
-                                    response.encrypted = true;
-                                }
-                            }
-
-                            return response;
-                        })
-                    };
-
-                    res.render('messages', response);
-                });
+                    });
             });
         }
     );
@@ -714,7 +716,7 @@ router.post('/create', (req, res, next) => {
             id,
             userData,
             encodedUser: userData.address,
-            encodedPass: userData.password.replace(/'/g, '\\\''),
+            encodedPass: userData.password.replace(/'/g, "\\'"),
             smtp: config.smtp,
             imap: config.imap,
             pop3: config.pop3,
@@ -736,7 +738,7 @@ function getMessage(id, mailbox, message, uid, usePrivateUrl, callback) {
     db.database.collection('messages').findOne(
         query,
         {
-            fields: {
+            projection: {
                 _id: true,
                 uid: true,
                 user: true,
@@ -1090,7 +1092,7 @@ function getFilteredMessageCount(db, filter, done) {
         return tools.getMailboxCounter(db, filter.mailbox, false, done);
     }
 
-    db.database.collection('messages').count(filter, (err, total) => {
+    db.database.collection('messages').countDocuments(filter, (err, total) => {
         if (err) {
             return done(err);
         }
@@ -1129,7 +1131,7 @@ function renderSource(req, res, next, data) {
     db.database.collection('messages').findOne(
         query,
         {
-            fields: {
+            projection: {
                 _id: true,
                 user: true,
                 mailbox: true,
@@ -1232,7 +1234,7 @@ function renderAttachment(req, res, next, data) {
     db.database.collection('messages').findOne(
         query,
         {
-            fields: {
+            projection: {
                 _id: true,
                 user: true,
                 attachments: true,
