@@ -676,6 +676,36 @@ router.get('/messages', checkLogin, (req, res, next) => {
     );
 });
 
+router.get('/create', (req, res) => {
+    db.redis
+        .multi()
+        .get('api:create')
+        .get('www:create')
+        .get('msa:count:accept')
+        .hgetall('msa:count:accept:daily')
+        .exec((err, results) => {
+            if (err) {
+                // ignore
+            }
+            results = results || [];
+
+            let stats = (results[3] && results[3][1]) || {};
+            let statSeries = Object.keys(stats || {})
+                .map(key => ({ x: key, y: Number(stats[key]) }))
+                .sort((a, b) => a.x.localeCompare(b.x))
+                .slice(-15);
+
+            res.render('create-get', {
+                activeHome: true,
+                accounts: humanize.numberFormat((Number(results[0] && results[0][1]) || 0) + (Number(results[1] && results[1][1]) || 0), 0, ',', ' '),
+                messages: humanize.numberFormat(Number(results[2] && results[2][1]) || 0, 0, ',', ' '),
+                page: mdrender('index', { title: 'test' }),
+                statSeries: JSON.stringify(statSeries),
+                csrfToken: req.csrfToken()
+            });
+        });
+});
+
 router.post('/create', (req, res, next) => {
     let tryCount = 0;
     let tryCreate = done => {
