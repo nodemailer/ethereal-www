@@ -684,6 +684,7 @@ router.post('/create', (req, res, next) => {
         let username = faker.internet
             .userName(firstName, lastName)
             .toLowerCase()
+            .replace(/_+/g, '.')
             .trim();
 
         if (tryCount >= 5) {
