@@ -779,7 +779,9 @@ This is where both your outgoing and incoming emails are stored.
 
 Your email address is: ${userData.address}
 
-Be aware that all messages from this mailbox are deleted after a short delay and are not recoverable. IP addresses and message transaction information is logged.
+Be aware that all messages from this mailbox are deleted after a short delay and are not recoverable. User account is not deleted automatically and can be used as long as system resources permit it.
+
+NB! IP addresses and message transaction information is logged.
 
 Regards,
 Ethereal.email`
