@@ -11,6 +11,7 @@ const mdrender = require('../lib/mdrender.js');
 const db = require('../lib/db');
 const libqp = require('libqp');
 const Joi = require('joi');
+const log = require('npmlog');
 const he = require('he');
 const libbase64 = require('libbase64');
 const libmime = require('libmime');
@@ -25,6 +26,7 @@ const etherealId = new EtherealId({
     secret: config.service.msgidSecret,
     hash: config.service.msgidHash
 });
+const faker = require('faker');
 
 router.use(passport.csrf);
 
@@ -674,53 +676,104 @@ router.get('/messages', checkLogin, (req, res, next) => {
 });
 
 router.post('/create', (req, res, next) => {
-    let username = getId();
-    let userData = {
-        username,
-        password: generatePassword.generate({
-            length: 18,
-            numbers: true,
-            symbols: false,
-            excludeSimilarCharacters: true
-        }),
-        address: username + '@' + config.service.domain,
-        recipients: 500,
-        forwards: 500,
-        quota: 100 * 1024 * 1024,
-        retention: 21600000,
-        ip: req.ip
+    let tryCount = 0;
+    let tryCreate = done => {
+        let firstName = faker.name.firstName();
+        let lastName = faker.name.lastName();
+        let username = faker.internet
+            .userName(firstName, lastName)
+            .toLowerCase()
+            .trim();
+
+        if (tryCount >= 5) {
+            username = getId();
+        }
+
+        let userData = {
+            name: firstName + ' ' + lastName,
+            username,
+            password: generatePassword.generate({
+                length: 18,
+                numbers: true,
+                symbols: false,
+                excludeSimilarCharacters: true
+            }),
+            address: username + '@' + config.service.domain,
+            recipients: 500,
+            forwards: 500,
+            quota: 100 * 1024 * 1024,
+            retention: 21600000,
+            ip: req.ip
+        };
+
+        db.userHandler.create(userData, (err, id) => {
+            if (err) {
+                if (tryCount < 10) {
+                    err.status = 500;
+                    return next(err);
+                } else {
+                    tryCount++;
+                    return tryCreate(done);
+                }
+            }
+
+            userData._id = id;
+            return done(null, userData);
+        });
     };
 
-    db.userHandler.create(userData, (err, id) => {
+    tryCreate((err, userData) => {
         if (err) {
-            err.status = 500;
             return next(err);
         }
 
         req.flash('success', 'Account created for ' + userData.address);
-
         db.redis.incr('www:create', () => false);
 
         let escapeCsv = value => JSON.stringify(value);
         let csv = [
-            ['Service', 'Username', 'Password', 'Hostname', 'Port', 'Security'],
-            ['SMTP', userData.address, userData.password, config.smtp.host, config.smtp.port, 'STARTTLS'],
-            ['IMAP', userData.address, userData.password, config.imap.host, config.imap.port, 'TLS'],
-            ['POP3', userData.address, userData.password, config.pop3.host, config.pop3.port, 'TLS']
+            ['Service', 'Name', 'Username', 'Password', 'Hostname', 'Port', 'Security'],
+            ['SMTP', userData.name, userData.address, userData.password, config.smtp.host, config.smtp.port, 'STARTTLS'],
+            ['IMAP', userData.name, userData.address, userData.password, config.imap.host, config.imap.port, 'TLS'],
+            ['POP3', userData.name, userData.address, userData.password, config.pop3.host, config.pop3.port, 'TLS']
         ]
             .map(line => line.map(value => escapeCsv(value)).join(','))
             .join('\n');
 
-        res.render('create', {
-            activeCreate: true,
-            id,
-            userData,
-            encodedUser: userData.address,
-            encodedPass: userData.password.replace(/'/g, "\\'"),
-            smtp: config.smtp,
-            imap: config.imap,
-            pop3: config.pop3,
-            csvData: Buffer.from(csv).toString('base64')
+        let user = {
+            id: userData._id,
+            username: userData.username,
+            address: userData.address,
+            scope: 'master'
+        };
+
+        req.session.regenerate(() => {
+            req.logIn(user, err => {
+                if (err) {
+                    db.redis.incr('www:auth:fail', () => false);
+                    log.error('Passport', 'AUTHFAIL address=%s error=%s', userData.address, err.message);
+                    req.flash('danger', err.message);
+                    return res.redirect('/login');
+                }
+
+                // Cookie expires at end of session
+                req.session.cookie.expires = false;
+
+                res.locals.user = req.user = user;
+                req.user.id = new ObjectID(req.user.id);
+
+                res.render('create', {
+                    activeCreate: true,
+                    id: userData._id,
+                    userData,
+                    encodedUser: userData.address,
+                    encodedPass: userData.password.replace(/'/g, "\\'"),
+                    smtp: config.smtp,
+                    imap: config.imap,
+                    pop3: config.pop3,
+                    csvData: Buffer.from(csv).toString('base64')
+                });
+            });
         });
     });
 });

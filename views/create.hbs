@@ -1,14 +1,19 @@
 <h1>Account created</h1>
 
 <p>
-    Here you can find all the details needed to access your new Ethereal test account. Remember that if sending messages through SMTP then no message is actually delivered, all messages are caught and you can see these in the <a href="/messages/" target="_blank">Messages</a> page or by using your favorite
+    Here you can find all the details needed to access your new Ethereal test account. Remember that if sending messages
+    through SMTP then no message is actually delivered, all messages are caught and you can see these in the <a
+        href="/messages/" target="_blank">Messages</a> page or by using your favorite
     IMAP/POP3 client.
 </p>
 
 <h4>Account credentials</h4>
 
+<p class="small">Account details generated using <a href="http://marak.github.io/faker.js/">Faker.js</a></p>
+
 <p>
-    <strong>NB!</strong> these credentials are shown only once. If you do not write these down then you have to create a new account.
+    <strong>NB!</strong> these credentials are shown only once. If you do not write these down then you have to create a
+    new account.
 </p>
 
 <div class="row">
@@ -17,24 +22,32 @@
             <tbody>
                 <tr>
                     <th>
-                        Username
+                        Name
                     </th>
                     <td>
-                        <code>{{userData.address}}</code> (also works as a real inbound email address)
+                        <code>{{userData.name}}</code>
                     </td>
                     <td class="text-right">
-                        <a href="data:text/csv;charset=utf-8;base64,{{{csvData}}}" download="credentials.csv" target="_plain" class="btn btn-info btn-sm"><span class="oi oi-cloud-download"></span> Download as CSV</a>
+                        <a href="data:text/csv;charset=utf-8;base64,{{{csvData}}}" download="credentials.csv"
+                            target="_plain" class="btn btn-info btn-sm"><span class="oi oi-cloud-download"></span>
+                            Download as CSV</a>
                     </td>
+                </tr>
+                <tr>
+                    <th>
+                        Username
+                    </th>
+                    <td colspan="2">
+                        <code>{{userData.address}}</code> (also works as a real inbound email address)
+                    </td>
+
                 </tr>
                 <tr>
                     <th>
                         Password
                     </th>
-                    <td>
+                    <td colspan="2">
                         <code>{{userData.password}}</code>
-                    </td>
-                    <td>
-
                     </td>
                 </tr>
             </tbody>
