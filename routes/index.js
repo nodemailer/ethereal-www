@@ -1,6 +1,7 @@
 'use strict';
 
 const generatePassword = require('generate-password');
+const MailComposer = require('nodemailer/lib/mail-composer');
 const MongoPaging = require('mongo-cursor-pagination');
 const config = require('wild-config');
 const express = require('express');
@@ -762,16 +763,82 @@ router.post('/create', (req, res, next) => {
                 res.locals.user = req.user = user;
                 req.user.id = new ObjectID(req.user.id);
 
-                res.render('create', {
-                    activeCreate: true,
-                    id: userData._id,
-                    userData,
-                    encodedUser: userData.address,
-                    encodedPass: userData.password.replace(/'/g, "\\'"),
-                    smtp: config.smtp,
-                    imap: config.imap,
-                    pop3: config.pop3,
-                    csvData: Buffer.from(csv).toString('base64')
+                let addMessage = done => {
+                    let date = new Date();
+                    let data = {
+                        date,
+                        from: { name: 'Ethereal Email', address: 'info@ethereal.email' },
+                        to: {
+                            name: userData.name,
+                            address: userData.address
+                        },
+                        subject: 'This is your ethereal mailbox',
+                        text: `Welcome to Ethereal.email!
+
+This is where both your outgoing and incoming emails are stored.
+
+Your email address is: ${userData.address}
+
+Be aware that all messages from this mailbox are deleted after a short delay and are not recoverable. IP addresses and message transaction information is logged.
+
+Regards,
+Ethereal.email`
+                    };
+
+                    let compiler = new MailComposer(data);
+                    let compiled = compiler.compile();
+                    let envelope = compiled.getEnvelope();
+
+                    let stream = compiled.createReadStream();
+                    let chunks = [];
+                    let chunklen = 0;
+                    stream.once('error', done);
+                    stream.on('readable', () => {
+                        let chunk;
+                        while ((chunk = stream.read()) !== null) {
+                            chunks.push(chunk);
+                            chunklen += chunk.length;
+                        }
+                    });
+                    stream.once('end', () => {
+                        let raw = Buffer.concat(chunks, chunklen);
+                        db.messageHandler.add(
+                            {
+                                user: userData._id,
+                                path: 'INBOX',
+                                meta: {
+                                    source: 'API',
+                                    from: '',
+                                    origin: req.ip || '127.0.0.1',
+                                    transtype: 'UPLOAD',
+                                    time: date,
+                                    envelope
+                                },
+                                date,
+                                flags: ['\\Flagged'],
+                                raw
+                            },
+                            done
+                        );
+                    });
+                };
+
+                addMessage(err => {
+                    if (err) {
+                        log.error('MSGADD', err.stack);
+                    }
+
+                    res.render('create', {
+                        activeCreate: true,
+                        id: userData._id,
+                        userData,
+                        encodedUser: userData.address,
+                        encodedPass: userData.password.replace(/'/g, "\\'"),
+                        smtp: config.smtp,
+                        imap: config.imap,
+                        pop3: config.pop3,
+                        csvData: Buffer.from(csv).toString('base64')
+                    });
                 });
             });
         });

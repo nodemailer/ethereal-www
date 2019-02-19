@@ -27,17 +27,12 @@
                     <td>
                         <code>{{userData.name}}</code>
                     </td>
-                    <td class="text-right">
-                        <a href="data:text/csv;charset=utf-8;base64,{{{csvData}}}" download="credentials.csv"
-                            target="_plain" class="btn btn-info btn-sm"><span class="oi oi-cloud-download"></span>
-                            Download as CSV</a>
-                    </td>
                 </tr>
                 <tr>
                     <th>
                         Username
                     </th>
-                    <td colspan="2">
+                    <td>
                         <code>{{userData.address}}</code> (also works as a real inbound email address)
                     </td>
 
@@ -46,7 +41,7 @@
                     <th>
                         Password
                     </th>
-                    <td colspan="2">
+                    <td>
                         <code>{{userData.password}}</code>
                     </td>
                 </tr>
@@ -54,6 +49,15 @@
         </table>
     </div>
 </div>
+
+<p>
+    <a href="data:text/csv;charset=utf-8;base64,{{{csvData}}}" download="credentials.csv" target="_plain"
+        class="btn btn-info btn-sm"><span class="oi oi-cloud-download"></span>
+        Download as CSV</a>
+
+    <a class="btn btn-primary btn-sm" href="/messages" target="_blank"><span class="oi oi-external-link"></span> Open
+        Mailbox</a>
+</p>
 
 <h4 style="margin-top: 30px;">Nodemailer configuration</h4>
 
