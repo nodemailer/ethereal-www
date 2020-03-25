@@ -738,8 +738,13 @@ router.post('/create', (req, res, next) => {
             ip: req.ip
         };
 
-        db.userHandler.create(userData, (err, id) => {
-            if (err) {
+        db.userHandler
+            .create(userData)
+            .then(id => {
+                userData._id = id;
+                return done(null, userData);
+            })
+            .catch(err => {
                 if (tryCount < 10) {
                     err.status = 500;
                     return next(err);
@@ -747,11 +752,7 @@ router.post('/create', (req, res, next) => {
                     tryCount++;
                     return tryCreate(done);
                 }
-            }
-
-            userData._id = id;
-            return done(null, userData);
-        });
+            });
     };
 
     tryCreate((err, userData) => {
