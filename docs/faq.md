@@ -40,7 +40,7 @@ No, you can use any mail client or library that supports SMTP, be it PHPMailer o
 
 #### 10\. I'm over quota! Help!
 
-Every address gets a quota of 100MB message storage. Once that quota is full you can not receive any more messages to your account address. To clean up some space you can either use an IMAP client (using POP3 does not work) and delete older messages. Alternatively you could just wait up to 7 days when all stored messages expire automatically.
+Every address gets a quota of 100MB message storage. Once that quota is full you can not receive any more messages to your account address. To clean up some space you can either use an IMAP client (using POP3 does not work) and delete older messages. Alternatively you could just wait up until all stored messages expire automatically.
 
 #### 11\. Is there an example?
 
