@@ -28,7 +28,7 @@ Currently not. The server is not the fastest one so you probably can't send too 
 
 #### 7\. I signed in to the account using IMAP. Where are all the messages?
 
-All messages, both sent and received can be found from the _INBOX_ folder (unless 7 days has passed and the message is already deleted).
+All messages, both sent and received can be found from the _INBOX_ folder (unless the message is already expired).
 
 #### 8\. How is this sustainable
 
