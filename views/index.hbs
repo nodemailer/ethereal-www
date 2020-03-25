@@ -52,29 +52,28 @@
         <h5>Messages caught in the last 15 days</h5>
         <div class="messages-caught ct-double-octave"></div>
         <script>
-
+            var statSeries = {{{ statSeries }}};
             document.addEventListener('DOMContentLoaded', function () {
                 new Chartist.Line('.messages-caught', {
                     series: [
                         {
                             name: 'Messages caught',
-                            data: {{{ statSeries }}}.map(function (entry) { return { x: new Date(entry.x), y: entry.y }; })
-                    }
-                ]
-            }, {
+                            data: statSeries.map(function (entry) { return { x: new Date(entry.x), y: entry.y }; })
+                        }
+                    ]
+                }, {
                     axisX: {
                         type: Chartist.FixedScaleAxis,
-                        divisor: Math.max({{{ statSeries }}
-                }.length, 1),
-                labelInterpolationFnc: function(value) {
-                    return moment(value).format('MMM D');
-                }
-                },
-            axisY: {
-                onlyInteger: true
-            }
+                        divisor: Math.max(statSeries.length, 1),
+                        labelInterpolationFnc: function (value) {
+                            return moment(value).format('MMM D');
+                        }
+                    },
+                    axisY: {
+                        onlyInteger: true
+                    }
+                });
             });
-        });
 
         </script>
     </div>
