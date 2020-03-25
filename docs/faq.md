@@ -20,7 +20,7 @@ You sure don't have to even though you can. Account details are cached in memory
 
 #### 5\. How long are the messages stored
 
-Messages are stored for 7 days, after what these are deleted.
+Messages are stored for few hours days, after what these are deleted. Message envelope info also indicates the expected expiration time after what the message is deleted.
 
 #### 6\. Are there any rate limits?
 

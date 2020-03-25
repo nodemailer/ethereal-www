@@ -7,33 +7,44 @@
             </div>
             <div style="align-self: flex-end; margin-bottom: .5rem;">
                 <h1 class="display-3">
-                    <button type="submit" class="btn btn-primary"><span class="oi oi-plus" title="Ethereal" aria-hidden="true"></span> Create Ethereal Account</button>
-                    <a href="https://mailtrain.org/subscription/ryIgbEHnW" class="btn btn-info"><span class="oi oi-envelope-open" title="Ethereal newsletter" aria-hidden="true"></span> Subscribe to newsletter</a>
+                    <button type="submit" class="btn btn-primary"><span class="oi oi-plus" title="Ethereal"
+                            aria-hidden="true"></span> Create Ethereal Account</button>
+                    <a href="https://mailtrain.org/subscription/ryIgbEHnW" class="btn btn-info"><span
+                            class="oi oi-envelope-open" title="Ethereal newsletter" aria-hidden="true"></span> Subscribe
+                        to newsletter</a>
                 </h1>
             </div>
         </div>
 
         <p class="lead">
-            <strong>Ethereal</strong> is a fake SMTP service, mostly aimed at <a href="https://nodemailer.com/">Nodemailer</a> users (but not limited to). It's a completely free anti-transactional email service where messages never get delivered.</p>
-            <p>Instead, you can generate a vanity email account right from Nodemailer, send an email using that account just as you would with any other SMTP provider and finally <a href="/message/WaZ4Au2XiUYoPu0MWaZ5d1yRazGkcu0lAAAAAQvjbRo.YQsBidMcHxC5Tqg">preview</a> the sent message here as no emails are actually delivered. So far Ethereal has caught <span title="From {{accounts}} test accounts" style="font-weight: bold">{{messages}}</span> emails sent using Ethereal testing accounts.
+            <strong>Ethereal</strong> is a fake SMTP service, mostly aimed at <a
+                href="https://nodemailer.com/">Nodemailer</a> users (but not limited to). It's a completely free
+            anti-transactional email service where messages never get delivered.</p>
+        <p>Instead, you can generate a vanity email account right from Nodemailer, send an email using that account just
+            as you would with any other SMTP provider and finally preview the sent message here as no emails are
+            actually delivered. So far Ethereal has caught <span title="From {{accounts}} test accounts"
+                style="font-weight: bold">{{messages}}</span> emails sent using Ethereal testing accounts.
         </p>
 
     </div>
 </form>
 
 <div class="row">
-<div class="col-md-4">
-  <h2>IMAP/POP3</h2>
-  <p>Ethereal addresses act as real IMAP/POP3 accounts. You can access sent and received messages using your favorite email client, whatever that happens to be.</p>
-</div>
-<div class="col-md-4">
-  <h2>Inbound</h2>
-  <p>The same account acts as a real inbound email address. You can send emails to that address from anywhere and these messages also end up on the account mailbox.</p>
-</div>
-<div class="col-md-4">
-  <h2>Automatic</h2>
-  <p>All account registration can be handled by the Nodemailer API. If you have lost authentication details for a previous account, then just create a new one.</p>
-</div>
+    <div class="col-md-4">
+        <h2>IMAP/POP3</h2>
+        <p>Ethereal addresses act as real IMAP/POP3 accounts. You can access sent and received messages using your
+            favorite email client, whatever that happens to be.</p>
+    </div>
+    <div class="col-md-4">
+        <h2>Inbound</h2>
+        <p>The same account acts as a real inbound email address. You can send emails to that address from anywhere and
+            these messages also end up on the account mailbox.</p>
+    </div>
+    <div class="col-md-4">
+        <h2>Automatic</h2>
+        <p>All account registration can be handled by the Nodemailer API. If you have lost authentication details for a
+            previous account, then just create a new one.</p>
+    </div>
 </div>
 
 <div class="row">
@@ -42,25 +53,26 @@
         <div class="messages-caught ct-double-octave"></div>
         <script>
 
-        document.addEventListener('DOMContentLoaded', function(){
-            new Chartist.Line('.messages-caught', {
-                series: [
-                    {
-                        name: 'Messages caught',
-                        data: {{{statSeries}}}.map(function(entry){return {x: new Date(entry.x), y: entry.y};})
+            document.addEventListener('DOMContentLoaded', function () {
+                new Chartist.Line('.messages-caught', {
+                    series: [
+                        {
+                            name: 'Messages caught',
+                            data: {{{ statSeries }}}.map(function (entry) { return { x: new Date(entry.x), y: entry.y }; })
                     }
                 ]
             }, {
-                axisX: {
-                    type: Chartist.FixedScaleAxis,
-                    divisor: Math.max({{{statSeries}}}.length, 1),
-                    labelInterpolationFnc: function(value) {
-                        return moment(value).format('MMM D');
-                    }
-                },
-                axisY: {
-                    onlyInteger: true
+                    axisX: {
+                        type: Chartist.FixedScaleAxis,
+                        divisor: Math.max({{{ statSeries }}
+                }.length, 1),
+                labelInterpolationFnc: function(value) {
+                    return moment(value).format('MMM D');
                 }
+                },
+            axisY: {
+                onlyInteger: true
+            }
             });
         });
 
